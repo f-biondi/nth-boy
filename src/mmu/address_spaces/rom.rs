@@ -1,8 +1,7 @@
-use std::{fs::File, io::Result};
+use crate::mmu::address_spaces::Addressable;
 use std::os::unix::prelude::FileExt;
 use std::str;
-use crate::mmu::address_spaces::Addressable;
-
+use std::{fs::File, io::Result};
 
 pub struct Rom {
     name: String,
@@ -11,21 +10,19 @@ pub struct Rom {
 
 impl Rom {
     pub fn from_file(path: &str) -> Result<Self> {
-        let mut file: File =  File::open(path)?; 
-        let name_buffer : Vec<u8> = Self::read_buffer(&mut file, 0x134, 15)?;
-        Ok(
-            Self{
-                name: str::from_utf8(&name_buffer).unwrap().to_string(),
-                rom: Self::read_buffer(&mut file, 0x0, 32768)?
-            }
-        )
+        let mut file: File = File::open(path)?;
+        let name_buffer: Vec<u8> = Self::read_buffer(&mut file, 0x134, 15)?;
+        Ok(Self {
+            name: str::from_utf8(&name_buffer).unwrap().to_string(),
+            rom: Self::read_buffer(&mut file, 0x0, 32768)?,
+        })
     }
 
     pub fn boot_rom() -> Self {
-        let mut file: File =  File::open("roms/DMG_ROM.gb").unwrap(); 
-        Self{
+        let mut file: File = File::open("roms/DMG_ROM.gb").unwrap();
+        Self {
             name: String::from("DMG boot rom"),
-            rom: Self::read_buffer(&mut file, 0, 0x3FFF).unwrap()
+            rom: Self::read_buffer(&mut file, 0, 0x3FFF).unwrap(),
         }
     }
 
@@ -35,7 +32,7 @@ impl Rom {
     }
 
     fn read_buffer(input: &mut File, start: u64, buf_size: usize) -> Result<Vec<u8>> {
-        let mut buffer : Vec<u8> = vec![0; buf_size];
+        let mut buffer: Vec<u8> = vec![0; buf_size];
         input.read_at(&mut buffer, start)?;
         Ok(buffer)
     }

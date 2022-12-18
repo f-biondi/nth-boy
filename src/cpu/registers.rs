@@ -1,3 +1,20 @@
+pub enum Register8 {
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    H,
+    L,
+}
+
+pub enum Register16 {
+    AF,
+    BC,
+    HL,
+}
+
 pub struct Registers {
     a: u8,
     b: u8,
@@ -13,7 +30,7 @@ pub struct Registers {
 
 impl Registers {
     pub fn new() -> Self {
-        Self{
+        Self {
             a: 0x01,
             b: 0x00,
             c: 0x13,
@@ -27,46 +44,54 @@ impl Registers {
         }
     }
 
-    pub fn get(&self, name: &str) -> u16 {
+    pub fn get8(&self, name: &Register8) -> u8 {
         match name {
-            "A" => self.a as u16,
-            "B" => self.b as u16,
-            "C" => self.c as u16,
-            "D" => self.d as u16,
-            "E" => self.e as u16,
-            "F" => self.f as u16,
-            "H" => self.h as u16,
-            "L" => self.l as u16,
-            "AF" => ((self.a as u16) << 8) + (self.f as u16),
-            "BC" => ((self.b as u16) << 8) + (self.c as u16),
-            "HL" => ((self.h as u16) << 8) + (self.l as u16),
-            _ => panic!("No register {}", name)
+            Register8::A => self.a,
+            Register8::B => self.b,
+            Register8::C => self.c,
+            Register8::D => self.d,
+            Register8::E => self.e,
+            Register8::F => self.f,
+            Register8::H => self.h,
+            Register8::L => self.l,
         }
     }
 
-    pub fn set(&mut self, name: &str, value: u16) {
+    pub fn get16(&self, name: &Register16) -> u16 {
         match name {
-            "A" => self.a = value as u8,
-            "B" => self.b = value as u8,
-            "C" => self.c = value as u8,
-            "D" => self.d = value as u8,
-            "E" => self.e = value as u8,
-            "F" => self.f = value as u8,
-            "H" => self.h = value as u8,
-            "L" => self.l = value as u8,
-            "AF" => {
+            Register16::AF => ((self.a as u16) << 8) + (self.f as u16),
+            Register16::BC => ((self.b as u16) << 8) + (self.c as u16),
+            Register16::HL => ((self.h as u16) << 8) + (self.l as u16),
+        }
+    }
+
+    pub fn set8(&mut self, name: &Register8, value: u8) {
+        match name {
+            Register8::A => self.a = value,
+            Register8::B => self.b = value,
+            Register8::C => self.c = value,
+            Register8::D => self.d = value,
+            Register8::E => self.e = value,
+            Register8::F => self.f = value,
+            Register8::H => self.h = value,
+            Register8::L => self.l = value,
+        };
+    }
+
+    pub fn set16(&mut self, name: &Register16, value: u16) {
+        match name {
+            Register16::AF => {
                 self.a = ((value & 0xff00) >> 8) as u8;
                 self.f = (value & 0x00ff) as u8;
-            },
-            "BC" => {
+            }
+            Register16::BC => {
                 self.b = ((value & 0xff00) >> 8) as u8;
                 self.c = (value & 0x00ff) as u8;
-            },
-            "HL" => {
+            }
+            Register16::HL => {
                 self.h = ((value & 0xff00) >> 8) as u8;
                 self.l = (value & 0x00ff) as u8;
-            },
-            _ => panic!("No register {}", name)
-        }
+            }
+        };
     }
 }
