@@ -1,6 +1,6 @@
 use crate::mmu::Mmu;
-use registers::Register8;
 use registers::Register16;
+use registers::Register8;
 use registers::Registers;
 
 mod registers;
@@ -10,7 +10,7 @@ use crate::mmu::address_spaces::Addressable;
 enum PostOp {
     INC,
     DEC,
-    NONE
+    NONE,
 }
 
 pub struct Cpu {
@@ -56,12 +56,8 @@ impl Cpu {
 
     fn handle_post_op(&mut self, reg: &Register16, op: &PostOp) {
         match op {
-            PostOp::INC => {
-                self.reg.set16(reg, self.reg.get16(reg)+1)
-            }
-            PostOp::DEC => {
-                self.reg.set16(reg, self.reg.get16(reg)-1)
-            }
+            PostOp::INC => self.reg.set16(reg, self.reg.get16(reg) + 1),
+            PostOp::DEC => self.reg.set16(reg, self.reg.get16(reg) - 1),
             _ => {}
         }
     }
@@ -130,7 +126,7 @@ impl Cpu {
     }
 
     fn ldh_iu8_r8(&mut self, dest: Register8, src: Register8) {
-        let value : u8 = self.reg.get8(&src);
+        let value: u8 = self.reg.get8(&src);
         let add_low: u8 = self.consume_u8();
         let add: u16 = 0xff00 & (add_low as u16);
         self.mmu.write(add, value);

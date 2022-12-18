@@ -13,6 +13,9 @@ pub enum Register16 {
     AF,
     BC,
     HL,
+    DE,
+    SP,
+    PC,
 }
 
 pub struct Registers {
@@ -62,6 +65,9 @@ impl Registers {
             Register16::AF => ((self.a as u16) << 8) + (self.f as u16),
             Register16::BC => ((self.b as u16) << 8) + (self.c as u16),
             Register16::HL => ((self.h as u16) << 8) + (self.l as u16),
+            Register16::DE => ((self.d as u16) << 8) + (self.e as u16),
+            Register16::SP => self.sp,
+            Register16::PC => self.pc,
         }
     }
 
@@ -92,6 +98,12 @@ impl Registers {
                 self.h = ((value & 0xff00) >> 8) as u8;
                 self.l = (value & 0x00ff) as u8;
             }
+            Register16::DE => {
+                self.d = ((value & 0xff00) >> 8) as u8;
+                self.e = (value & 0x00ff) as u8;
+            }
+            Register16::SP => self.sp = value,
+            Register16::PC => self.pc = value,
         };
     }
 }
