@@ -92,13 +92,13 @@ impl Cpu {
         self.mmu.write(add, value);
     }
 
-    fn ld_r8_iu16(&mut self, dest: Register8, src: Register16) {
+    fn ld_r8_iu16(&mut self, dest: Register8) {
         let add: u16 = self.consume_u16();
         let value: u8 = self.mmu.read(add);
         self.reg.set8(&dest, value);
     }
 
-    fn ld_iu16_r8(&mut self, dest: Register16, src: Register8) {
+    fn ld_iu16_r8(&mut self, src: Register8) {
         let value: u8 = self.reg.get8(&src);
         let add: u16 = self.consume_u16();
         self.mmu.write(add, value);
@@ -125,11 +125,27 @@ impl Cpu {
         self.reg.set8(&dest, value);
     }
 
-    fn ldh_iu8_r8(&mut self, dest: Register8, src: Register8) {
+    fn ldh_iu8_r8(&mut self, src: Register8) {
         let value: u8 = self.reg.get8(&src);
         let add_low: u8 = self.consume_u8();
         let add: u16 = 0xff00 & (add_low as u16);
         self.mmu.write(add, value);
+    }
+
+    fn ld_r16_u16(&mut self, dest: Register16) {
+        let value: u16 = self.consume_u16();
+        self.reg.set16(&dest, value);
+    }
+
+    fn ld_iu16_r16(&mut self, src: Register16) {
+        let value: u16 = self.reg.get16(&src);
+        let add: u16 = self.consume_u16();
+        self.mmu.write(add, value);
+    }
+
+    fn ld_r16_r16(&mut self, dest: Register16, src: Register16) {
+        let value: u8 = self.reg.get16(&src);
+        self.reg.set16(&dest, value);
     }
 
     fn nop(&mut self) {}
