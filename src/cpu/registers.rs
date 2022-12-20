@@ -18,6 +18,13 @@ pub enum Register16 {
     PC,
 }
 
+pub enum Flag {
+    Z,
+    N,
+    H,
+    C,
+}
+
 pub struct Registers {
     a: u8,
     b: u8,
@@ -104,6 +111,33 @@ impl Registers {
             }
             Register16::SP => self.sp = value,
             Register16::PC => self.pc = value,
+        };
+    }
+
+    pub fn getf(&self, name: &Flag) -> u8 {
+        match name {
+            Flag::Z => (self.f & 0b10000000) >> 7,
+            Flag::N => (self.f & 0b01000000) >> 6,
+            Flag::H => (self.f & 0b00100000) >> 5,
+            Flag::C => (self.f & 0b00010000) >> 4,
+        }
+    }
+
+    pub fn setf(&self, name: &Flag) {
+        match name {
+            Flag::Z => self.f | 0b10000000,
+            Flag::N => self.f | 0b01000000,
+            Flag::H => self.f | 0b00100000,
+            Flag::C => self.f | 0b00010000,
+        };
+    }
+
+    pub fn unsetf(&self, name: &Flag) {
+        match name {
+            Flag::Z => self.f & 0b01111111,
+            Flag::N => self.f & 0b10111111,
+            Flag::H => self.f & 0b11011111,
+            Flag::C => self.f & 0b11101111,
         };
     }
 }
