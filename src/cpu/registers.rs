@@ -23,6 +23,10 @@ pub enum Flag {
     N,
     H,
     C,
+    NZ,
+    NN,
+    NH,
+    NC,
 }
 
 pub struct Registers {
@@ -120,24 +124,36 @@ impl Registers {
             Flag::N => (self.f & 0b01000000) >> 6,
             Flag::H => (self.f & 0b00100000) >> 5,
             Flag::C => (self.f & 0b00010000) >> 4,
+            Flag::NZ => !((self.f & 0b10000000) >> 7),
+            Flag::NN => !((self.f & 0b01000000) >> 6),
+            Flag::NH => !((self.f & 0b00100000) >> 5),
+            Flag::NC => !((self.f & 0b00010000) >> 4),
         }
     }
 
-    pub fn setf(&self, name: &Flag) {
+    pub fn setf(&mut self, name: &Flag) {
         match name {
-            Flag::Z => self.f | 0b10000000,
-            Flag::N => self.f | 0b01000000,
-            Flag::H => self.f | 0b00100000,
-            Flag::C => self.f | 0b00010000,
+            Flag::Z => self.f |= 0b10000000,
+            Flag::N => self.f |= 0b01000000,
+            Flag::H => self.f |= 0b00100000,
+            Flag::C => self.f |= 0b00010000,
+            Flag::NZ => self.unsetf(&Flag::Z),
+            Flag::NN => self.unsetf(&Flag::N),
+            Flag::NH => self.unsetf(&Flag::H),
+            Flag::NC => self.unsetf(&Flag::C),
         };
     }
 
-    pub fn unsetf(&self, name: &Flag) {
+    pub fn unsetf(&mut self, name: &Flag) {
         match name {
-            Flag::Z => self.f & 0b01111111,
-            Flag::N => self.f & 0b10111111,
-            Flag::H => self.f & 0b11011111,
-            Flag::C => self.f & 0b11101111,
+            Flag::Z => self.f &= 0b01111111,
+            Flag::N => self.f &= 0b10111111,
+            Flag::H => self.f &= 0b11011111,
+            Flag::C => self.f &= 0b11101111,
+            Flag::NZ => self.setf(&Flag::Z),
+            Flag::NN => self.setf(&Flag::N),
+            Flag::NH => self.setf(&Flag::H),
+            Flag::NC => self.setf(&Flag::C),
         };
     }
 }
