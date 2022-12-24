@@ -1,4 +1,5 @@
 use crate::mmu::address_spaces::Addressable;
+use std::fs;
 use std::os::unix::prelude::FileExt;
 use std::str;
 use std::{fs::File, io::Result};
@@ -10,11 +11,10 @@ pub struct Rom {
 
 impl Rom {
     pub fn from_file(path: &str) -> Result<Self> {
-        let mut file: File = File::open(path)?;
-        let name_buffer: Vec<u8> = Self::read_buffer(&mut file, 0x134, 15)?;
+        let rom = fs::read(path).expect("Cannot read rom file!");
         Ok(Self {
-            name: str::from_utf8(&name_buffer).unwrap().to_string(),
-            rom: Self::read_buffer(&mut file, 0x0, 32768)?,
+            name: String::from("name"),
+            rom: rom,
         })
     }
 

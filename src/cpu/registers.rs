@@ -18,6 +18,7 @@ pub enum Register16 {
     PC,
 }
 
+#[derive(Debug)]
 pub enum Flag {
     Z,
     N,
@@ -44,17 +45,29 @@ pub struct Registers {
 
 impl Registers {
     pub fn new() -> Self {
+        /*Self {
+            a: 0x11,
+            b: 0x00,
+            c: 0x00,
+            d: 0xff,
+            e: 0x56,
+            f: 0x80,
+            h: 0x0,
+            l: 0xd,
+            sp: 0xfffe,
+            pc: 0x0100,
+        }*/
         Self {
             a: 0x01,
             b: 0x00,
             c: 0x13,
             d: 0x00,
-            e: 0xd8,
-            f: 0b10000000,
+            e: 0xD8,
+            f: 0xB0,
             h: 0x01,
-            l: 0x4d,
+            l: 0x4D,
             sp: 0xfffe,
-            pc: 0x100,
+            pc: 0x0100,
         }
     }
 
@@ -124,10 +137,10 @@ impl Registers {
             Flag::N => (self.f & 0b01000000) >> 6,
             Flag::H => (self.f & 0b00100000) >> 5,
             Flag::C => (self.f & 0b00010000) >> 4,
-            Flag::NZ => !((self.f & 0b10000000) >> 7),
-            Flag::NN => !((self.f & 0b01000000) >> 6),
-            Flag::NH => !((self.f & 0b00100000) >> 5),
-            Flag::NC => !((self.f & 0b00010000) >> 4),
+            Flag::NZ => (self.f ^ 0b10000000) >> 7,
+            Flag::NN => (self.f ^ 0b01000000) >> 6,
+            Flag::NH => (self.f ^ 0b00100000) >> 5,
+            Flag::NC => (self.f ^ 0b00010000) >> 4,
         }
     }
 
