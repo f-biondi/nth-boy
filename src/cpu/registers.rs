@@ -112,7 +112,7 @@ impl Registers {
         match name {
             Register16::AF => {
                 self.a = ((value & 0xff00) >> 8) as u8;
-                self.f = (value & 0x00ff) as u8;
+                self.f = (value & 0x00f0) as u8;
             }
             Register16::BC => {
                 self.b = ((value & 0xff00) >> 8) as u8;
@@ -137,10 +137,10 @@ impl Registers {
             Flag::N => (self.f & 0b01000000) >> 6,
             Flag::H => (self.f & 0b00100000) >> 5,
             Flag::C => (self.f & 0b00010000) >> 4,
-            Flag::NZ => (self.f ^ 0b10000000) >> 7,
-            Flag::NN => (self.f ^ 0b01000000) >> 6,
-            Flag::NH => (self.f ^ 0b00100000) >> 5,
-            Flag::NC => (self.f ^ 0b00010000) >> 4,
+            Flag::NZ => ((self.f & 0b10000000) >> 7) ^ 0x01,
+            Flag::NN => ((self.f & 0b01000000) >> 6) ^ 0x01,
+            Flag::NH => ((self.f & 0b00100000) >> 5) ^ 0x01,
+            Flag::NC => ((self.f & 0b00010000) >> 4) ^ 0x01,
         }
     }
 

@@ -13,7 +13,9 @@ mod cpu;
 mod mmu;
 
 fn main() {
-    let mmu: Mmu = Mmu::from_file("roms/test_ld.gb").unwrap();
+    let mmu: Mmu =
+        Mmu::from_file("/home/fbiondi/nth-boy/roms/tests/cpu_instrs/individual/01-special.gb")
+            .unwrap();
     let mut cpu: Cpu = Cpu::new(mmu);
     let mut stdin = io::stdin();
     let mut stdout = stdout();

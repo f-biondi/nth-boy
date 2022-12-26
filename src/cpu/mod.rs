@@ -1111,7 +1111,7 @@ impl Cpu {
 
         let res: u16 = op1.wrapping_add(op2);
 
-        if (0x0f00 - (op1 & 0x0f00)) < (op2 & 0x0f00) {
+        if (0x0fff - (op1 & 0x0fff)) < (op2 & 0x0fff) {
             self.reg.setf(&Flag::H);
         } else {
             self.reg.unsetf(&Flag::H);
@@ -1128,35 +1128,48 @@ impl Cpu {
     }
 
     fn signed_sum_flags(&mut self, op1: u16, op2: i8) -> u16 {
-        if op2 >= 0 {
-            if (0x0f00 - (op1 & 0x0f00)) < ((op2 as u16) & 0x0f00) {
+        let res: u16 = self.signed_sum(op1, op2);
+
+        /*if op2 >= 0 {
+            if (0x000f - (op1 & 0x000f)) < ((op2.abs() as u16) & 0x0000f) {
                 self.reg.setf(&Flag::H);
             } else {
                 self.reg.unsetf(&Flag::H);
             }
 
-            if (0xffff - op1) < (op2 as u16) {
+            if (0x00ff - (op1 & 0x0ff)) < (op2.abs() as u16) {
                 self.reg.setf(&Flag::C);
             } else {
                 self.reg.unsetf(&Flag::C);
             }
         } else {
-            if (op2 as u16) > op1 {
-                self.reg.setf(&Flag::C);
-            } else {
-                self.reg.unsetf(&Flag::C);
-            }
-
-            if ((op2 as u16) & 0x0f00) > ((op1 as u16) & 0x0f00) {
+            if (op1 & 0x000f) < ((op2.abs() & 0x000f) as u16) {
                 self.reg.setf(&Flag::H);
             } else {
                 self.reg.unsetf(&Flag::H);
             }
+
+            if (op1 & 0x00ff) < (op2.abs() as u16) {
+                self.reg.setf(&Flag::C);
+            } else {
+               self.reg.unsetf(&Flag::C);
+            }
+        }*/
+        if (0x000f - ((op1 & 0x000f) as u8)) < ((op2 as u8) & 0x0000f) {
+            self.reg.setf(&Flag::H);
+        } else {
+            self.reg.unsetf(&Flag::H);
+        }
+
+        if (0x00ff - ((op1 & 0x0ff) as u8)) < (op2 as u8) {
+            self.reg.setf(&Flag::C);
+        } else {
+            self.reg.unsetf(&Flag::C);
         }
 
         self.reg.unsetf(&Flag::Z);
         self.reg.unsetf(&Flag::N);
-        self.signed_sum(op1, op2)
+        res
     }
 
     fn add_r16_i8(&mut self, reg: Register16) {
@@ -1270,44 +1283,49 @@ impl Cpu {
     // CB
     //
 
-    fn setb8(self, bit: u8, value: u8) -> u8 {
-        value | (1u8 << bit)
+    fn setb8(bit: u8, value: u8) -> u8 {
+        value | (1 << bit)
     }
 
     fn set_b_r8(&mut self, bit: u8, reg: Register8) {
         let val: u8 = self.reg.get8(&reg);
-        self.reg.set8(&reg, self.setb8(bit, val));
+        let res: u8 = Cpu::setb8(bit, val);
+        self.reg.set8(&reg, res);
     }
 
     fn set_b_ir16(&mut self, bit: u8, reg: Register16) {
         let add: u16 = self.reg.get16(&reg);
-        let val: u8 = self.mmu.read(add); 
-        self.mmu.write(add, self.setb8(bit, val));
+        let val: u8 = self.mmu.read(add);
+        let res: u8 = Cpu::setb8(bit, val);
+        self.mmu.write(add, res);
     }
 
-    fn resetb8(self, bit: u8, value: u8) -> u8 {
-        value & ~(1u8 << bit)
+    fn resetb8(bit: u8, value: u8) -> u8 {
+        value & !(1 << bit)
     }
 
     fn res_b_r8(&mut self, bit: u8, reg: Register8) {
         let val: u8 = self.reg.get8(&reg);
-        self.reg.set8(&reg, self.resetb8(bit, val));
+        let res: u8 = Cpu::resetb8(bit, val);
+        self.reg.set8(&reg, res);
     }
 
     fn res_b_ir16(&mut self, bit: u8, reg: Register16) {
         let add: u16 = self.reg.get16(&reg);
-        let val: u8 = self.mmu.read(add); 
-        self.mmu.write(add, self.resetb8(bit, val));
+        let val: u8 = self.mmu.read(add);
+        let res: u8 = Cpu::resetb8(bit, val);
+        self.mmu.write(add, res);
     }
 
     fn testb8_flags(&mut self, bit: u8, value: u8) {
         let res: u8 = (value & (1u8 << bit)) >> bit;
         if res == 0 {
             self.reg.setf(&Flag::Z);
+        } else {
+            self.reg.unsetf(&Flag::Z);
         }
         self.reg.unsetf(&Flag::N);
         self.reg.setf(&Flag::H);
-
     }
 
     fn bit_b_r8(&mut self, bit: u8, reg: Register8) {
@@ -1321,28 +1339,362 @@ impl Cpu {
         self.testb8_flags(bit, value);
     }
 
+    fn swap8_flags(&mut self, value: u8) -> u8 {
+        let high: u8 = (value & 0xf0) >> 4;
+        let low: u8 = value & 0x0f;
+        let res: u8 = (low << 4) | high;
+
+        if res == 0 {
+            self.reg.setf(&Flag::Z);
+        } else {
+            self.reg.unsetf(&Flag::Z);
+        }
+
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+        self.reg.unsetf(&Flag::C);
+
+        res
+    }
+
+    fn swap_r8(&mut self, reg: Register8) {
+        let val: u8 = self.reg.get8(&reg);
+        let res: u8 = self.swap8_flags(val);
+        self.reg.set8(&reg, res);
+    }
+
+    fn swap_ir16(&mut self, reg: Register16) {
+        let add: u16 = self.reg.get16(&reg);
+        let val: u8 = self.mmu.read(add);
+        let res: u8 = self.swap8_flags(val);
+        self.mmu.write(add, res);
+    }
+
+    fn shiftrl8_flags(&mut self, value: u8) -> u8 {
+        let res: u8 = value >> 1;
+
+        if (value & 0x01) == 1 {
+            self.reg.setf(&Flag::C);
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        if res == 0 {
+            self.reg.setf(&Flag::Z);
+        } else {
+            self.reg.unsetf(&Flag::Z);
+        }
+
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+        res
+    }
+
+    fn srl_r8(&mut self, reg: Register8) {
+        let value: u8 = self.reg.get8(&reg);
+        let res: u8 = self.shiftrl8_flags(value);
+        self.reg.set8(&reg, res);
+    }
+
+    fn srl_ir16(&mut self, reg: Register16) {
+        let add: u16 = self.reg.get16(&reg);
+        let value: u8 = self.mmu.read(add);
+        let res: u8 = self.shiftrl8_flags(value);
+        self.mmu.write(add, res);
+    }
+
+    fn shiftra8_flags(&mut self, value: u8) -> u8 {
+        let res: u8 = (value & 0xf0) + (value >> 1);
+
+        if (value & 0x01) == 1 {
+            self.reg.setf(&Flag::C);
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        if res == 0 {
+            self.reg.setf(&Flag::Z);
+        } else {
+            self.reg.unsetf(&Flag::Z);
+        }
+
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+        res
+    }
+
+    fn sra_r8(&mut self, reg: Register8) {
+        let value: u8 = self.reg.get8(&reg);
+        let res: u8 = self.shiftra8_flags(value);
+        self.reg.set8(&reg, res);
+    }
+
+    fn sra_ir16(&mut self, reg: Register16) {
+        let add: u16 = self.reg.get16(&reg);
+        let value: u8 = self.mmu.read(add);
+        let res: u8 = self.shiftra8_flags(value);
+        self.mmu.write(add, res);
+    }
+
+    fn shiftla8_flags(&mut self, value: u8) -> u8 {
+        let res: u8 = value << 1;
+
+        if (value & 0x80) == 1 {
+            self.reg.setf(&Flag::C);
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        if res == 0 {
+            self.reg.setf(&Flag::Z);
+        } else {
+            self.reg.unsetf(&Flag::Z);
+        }
+
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+        res
+    }
+
+    fn sla_r8(&mut self, reg: Register8) {
+        let value: u8 = self.reg.get8(&reg);
+        let res: u8 = self.shiftla8_flags(value);
+        self.reg.set8(&reg, res);
+    }
+
+    fn sla_ir16(&mut self, reg: Register16) {
+        let add: u16 = self.reg.get16(&reg);
+        let value: u8 = self.mmu.read(add);
+        let res: u8 = self.shiftla8_flags(value);
+        self.mmu.write(add, res);
+    }
+
+    fn rotater8_flags(&mut self, value: u8) -> u8 {
+        let mut res: u8 = value >> 1;
+
+        if self.reg.getf(&Flag::C) == 1 {
+            res |= 0x80;
+        }
+
+        if (value & 0x01) == 1 {
+            self.reg.setf(&Flag::C);
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        if res == 0 {
+            self.reg.setf(&Flag::Z);
+        } else {
+            self.reg.unsetf(&Flag::Z);
+        }
+
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+        res
+    }
+
+    fn rr_r8(&mut self, reg: Register8) {
+        let value: u8 = self.reg.get8(&reg);
+        let res: u8 = self.rotater8_flags(value);
+        self.reg.set8(&reg, res);
+    }
+
+    fn rr_ir16(&mut self, reg: Register16) {
+        let add: u16 = self.reg.get16(&reg);
+        let value: u8 = self.mmu.read(add);
+        let res: u8 = self.rotater8_flags(value);
+        self.mmu.write(add, res);
+    }
+
+    fn rotatel8_flags(&mut self, value: u8) -> u8 {
+        let mut res: u8 = value << 1;
+
+        if self.reg.getf(&Flag::C) == 1 {
+            res |= 0x01;
+        }
+
+        if (value & 0x80) == 1 {
+            self.reg.setf(&Flag::C);
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        if res == 0 {
+            self.reg.setf(&Flag::Z);
+        } else {
+            self.reg.unsetf(&Flag::Z);
+        }
+
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+        res
+    }
+
+    fn rl_r8(&mut self, reg: Register8) {
+        let value: u8 = self.reg.get8(&reg);
+        let res: u8 = self.rotatel8_flags(value);
+        self.reg.set8(&reg, res);
+    }
+
+    fn rl_ir16(&mut self, reg: Register16) {
+        let add: u16 = self.reg.get16(&reg);
+        let value: u8 = self.mmu.read(add);
+        let res: u8 = self.rotatel8_flags(value);
+        self.mmu.write(add, res);
+    }
+
+    fn rotaterc8_flags(&mut self, value: u8) -> u8 {
+        let mut res: u8 = value >> 1;
+
+        if (value & 0x01) == 1 {
+            self.reg.setf(&Flag::C);
+            res |= 0x80;
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        if res == 0 {
+            self.reg.setf(&Flag::Z);
+        } else {
+            self.reg.unsetf(&Flag::Z);
+        }
+
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+        res
+    }
+
+    fn rrc_r8(&mut self, reg: Register8) {
+        let value: u8 = self.reg.get8(&reg);
+        let res: u8 = self.rotaterc8_flags(value);
+        self.reg.set8(&reg, res);
+    }
+
+    fn rrc_ir16(&mut self, reg: Register16) {
+        let add: u16 = self.reg.get16(&reg);
+        let value: u8 = self.mmu.read(add);
+        let res: u8 = self.rotaterc8_flags(value);
+        self.mmu.write(add, res);
+    }
+
+    fn rotatelc8_flags(&mut self, value: u8) -> u8 {
+        let mut res: u8 = value << 1;
+
+        if (value & 0x80) == 1 {
+            self.reg.setf(&Flag::C);
+            res |= 0x01;
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        if res == 0 {
+            self.reg.setf(&Flag::Z);
+        } else {
+            self.reg.unsetf(&Flag::Z);
+        }
+
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+        res
+    }
+
+    fn rlc_r8(&mut self, reg: Register8) {
+        let value: u8 = self.reg.get8(&reg);
+        let res: u8 = self.rotatelc8_flags(value);
+        self.reg.set8(&reg, res);
+    }
+
+    fn rlc_ir16(&mut self, reg: Register16) {
+        let add: u16 = self.reg.get16(&reg);
+        let value: u8 = self.mmu.read(add);
+        let res: u8 = self.rotatelc8_flags(value);
+        self.mmu.write(add, res);
+    }
+
+    fn rra(&mut self) {
+        let value: u8 = self.reg.get8(&Register8::A);
+        let mut res: u8 = value >> 1;
+
+        if self.reg.getf(&Flag::C) == 1 {
+            res |= 0x80;
+        }
+
+        if (value & 0x01) == 1 {
+            self.reg.setf(&Flag::C);
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        self.reg.unsetf(&Flag::Z);
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+
+        self.reg.set8(&Register8::A, res);
+    }
+
+    fn rlca(&mut self) {
+        let value: u8 = self.reg.get8(&Register8::A);
+        let mut res: u8 = value << 1;
+
+        if (value & 0x80) == 1 {
+            self.reg.setf(&Flag::C);
+            res |= 0x01;
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        self.reg.unsetf(&Flag::Z);
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+
+        self.reg.set8(&Register8::A, res);
+    }
+
+    fn rla(&mut self) {
+        let value: u8 = self.reg.get8(&Register8::A);
+        let mut res: u8 = value << 1;
+
+        if self.reg.getf(&Flag::C) == 1 {
+            res |= 0x01;
+        }
+
+        if (value & 0x80) == 1 {
+            self.reg.setf(&Flag::C);
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        self.reg.unsetf(&Flag::Z);
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+
+        self.reg.set8(&Register8::A, res);
+    }
+
+    fn rrca(&mut self) {
+        let value: u8 = self.reg.get8(&Register8::A);
+        let mut res: u8 = value >> 1;
+
+        if (value & 0x01) == 1 {
+            self.reg.setf(&Flag::C);
+            res |= 0x80;
+        } else {
+            self.reg.unsetf(&Flag::C);
+        }
+
+        self.reg.unsetf(&Flag::Z);
+        self.reg.unsetf(&Flag::N);
+        self.reg.unsetf(&Flag::H);
+
+        self.reg.set8(&Register8::A, res);
+    }
+
     //
     // TODO
     //
 
-    fn rlca(&mut self) {
-        panic!("rlca not implemented");
-    }
-
     fn stop(&mut self) {
         panic!("stop not implemented");
-    }
-
-    fn rla(&mut self) {
-        panic!("rla not implemented");
-    }
-
-    fn rra(&mut self) {
-        panic!("rra not implemented");
-    }
-
-    fn rrca(&mut self) {
-        panic!("rrca not implemented");
     }
 
     fn daa(&mut self) {
@@ -1406,5 +1758,8 @@ impl Cpu {
     }
     pub fn getpc(&self) -> u16 {
         self.reg.pc
+    }
+    pub fn test(&self) {
+        self.mmu.test();
     }
 }
