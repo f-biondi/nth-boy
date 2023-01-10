@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum Register8 {
     A,
     B,
@@ -9,6 +10,7 @@ pub enum Register8 {
     L,
 }
 
+#[derive(Debug)]
 pub enum Register16 {
     AF,
     BC,
@@ -45,7 +47,7 @@ pub struct Registers {
 
 impl Registers {
     pub fn new() -> Self {
-        /*Self {
+        Self {
             a: 0x11,
             b: 0x00,
             c: 0x00,
@@ -56,8 +58,8 @@ impl Registers {
             l: 0xd,
             sp: 0xfffe,
             pc: 0x0100,
-        }*/
-        Self {
+        }
+        /*Self {
             a: 0x01,
             b: 0x00,
             c: 0x13,
@@ -67,8 +69,8 @@ impl Registers {
             h: 0x01,
             l: 0x4D,
             sp: 0xfffe,
-            pc: 0x0100,
-        }
+            pc: 0x100,
+        }*/
     }
 
     pub fn get8(&self, name: &Register8) -> u8 {

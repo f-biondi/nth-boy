@@ -11,7 +11,7 @@ pub struct Rom {
 
 impl Rom {
     pub fn from_file(path: &str) -> Result<Self> {
-        let rom = fs::read(path).expect("Cannot read rom file!");
+        let mut rom = fs::read(path).expect("Cannot read rom file!");
         Ok(Self {
             name: String::from("name"),
             rom: rom,
