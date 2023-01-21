@@ -1,3 +1,5 @@
+pub mod generic_addressable;
+pub mod io;
 pub mod rom;
 
 pub trait Addressable {
