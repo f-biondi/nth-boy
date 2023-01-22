@@ -62,23 +62,19 @@ impl Cpu {
         })
     }
 
-    pub fn cycle(&mut self) -> u8 {
+    pub fn tick(&mut self) -> u8 {
         let start: u128 = self.cycles;
 
         if self.ime == Ime::PENDING {
             self.ime = Ime::ENABLED;
         }
 
-        self.check_interrupts();
-
         if !self.halted {
+            self.check_interrupts();
             let op: u8 = self.consume_u8();
             self.decode(op);
         } else {
-            let ie_f: u8 = self.mmu.read(0xffff);
-            let if_f: u8 = self.mmu.read(0xff0f);
-
-            if (ie_f & if_f) != 0 {
+            if (self.mmu.ie_flag & self.mmu.io.if_flag) != 0 {
                 self.halted = false;
             }
 
@@ -89,8 +85,8 @@ impl Cpu {
     }
 
     fn check_interrupts(&mut self) {
-       let ie_f: u8 = self.mmu.read(0xffff);
-       let if_f: u8 = self.mmu.read(0xff0f);
+       let ie_f: u8 = self.mmu.ie_flag;
+       let if_f: u8 = self.mmu.io.if_flag;
 
        if self.ime == Ime::ENABLED {
             if ((ie_f & 0x01) & (if_f & 0x01)) != 0 {
@@ -109,9 +105,7 @@ impl Cpu {
 
     fn handle_interrupt(&mut self, int: u16, bit: u8) {
         self.stack_push_u16(self.reg.pc);
-        let mut if_f: u8 = self.mmu.read(0xff0f);
-        if_f ^= bit;
-        self.mmu.write(0xff0f, if_f);
+        self.mmu.io.if_flag ^= bit;
         self.reg.pc = int;
         self.ime = Ime::DISABLED;
         self.step_cycles(20);

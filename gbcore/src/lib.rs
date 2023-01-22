@@ -30,7 +30,7 @@ impl Device {
         let mut total_cycles: u32 = 0;
 
         while total_cycles < CYCLE_LIMIT {
-            let cycles: u8 = self.cpu.cycle();
+            let cycles: u8 = self.cpu.tick();
             self.update_timers(cycles);
             self.cpu.mmu.test();
             total_cycles += cycles as u32;

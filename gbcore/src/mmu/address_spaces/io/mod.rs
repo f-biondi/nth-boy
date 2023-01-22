@@ -9,7 +9,7 @@ pub struct Io {
     i1: GenericAddressable,
     pub timers: Timers,
     i2: GenericAddressable,
-    if_flag: u8,
+    pub if_flag: u8,
     pub test: String,
 }
 

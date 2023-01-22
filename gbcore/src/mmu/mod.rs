@@ -15,7 +15,7 @@ pub struct Mmu {
     oam: GenericAddressable,
     pub io: Io,
     hram: GenericAddressable,
-    ie: u8,
+    pub ie_flag: u8,
 }
 
 impl Mmu {
@@ -27,7 +27,7 @@ impl Mmu {
             oam: GenericAddressable::new(0xFE00, 0xFE9F)?,
             io: Io::new()?,
             hram: GenericAddressable::new(0xFF80, 0xFFFE)?,
-            ie: 0,
+            ie_flag: 0,
         })
     }
 
@@ -50,7 +50,7 @@ impl Addressable for Mmu {
             0xFEA0..=0xFEFF => {}
             0xFF00..=0xFF7F => self.io.write(location, byte),
             0xFF80..=0xFFFE => self.hram.write(location, byte),
-            0xFFFF => self.ie = byte,
+            0xFFFF => self.ie_flag = byte,
         }
     }
 
@@ -66,7 +66,7 @@ impl Addressable for Mmu {
             0xFEA0..=0xFEFF => 0,
             0xFF00..=0xFF7F => self.io.read(location),
             0xFF80..=0xFFFE => self.hram.read(location),
-            0xFFFF => self.ie,
+            0xFFFF => self.ie_flag,
         }
     }
 }
