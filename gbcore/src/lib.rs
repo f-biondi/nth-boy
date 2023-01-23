@@ -15,13 +15,15 @@ const CYCLE_LIMIT: u32 = 70221;
 
 pub struct Device {
     cpu: Cpu,
+    mmu: Mmu,
     tima_overflow: bool
 }
 
 impl Device {
     pub fn new(path: &str) -> Result<Device, Box<dyn Error>> {
         Ok(Self {
-            cpu: Cpu::new(path)?,
+            cpu: Cpu::new(),
+            mmu: Mmu::from_file(path)?,
             tima_overflow: false
         })
     }
@@ -30,27 +32,27 @@ impl Device {
         let mut total_cycles: u32 = 0;
 
         while total_cycles < CYCLE_LIMIT {
-            let cycles: u8 = self.cpu.tick();
+            let cycles: u8 = self.cpu.tick(&mut self.mmu);
             self.update_timers(cycles);
-            self.cpu.mmu.test();
+            self.mmu.test();
             total_cycles += cycles as u32;
         }
     }
 
     fn update_timers(&mut self, cycles: u8) {
-       let tima_enabled: bool = self.cpu.mmu.io.timers.get_tima_enabled();
-       let tima_clock: u16 = self.cpu.mmu.io.timers.get_tima_clock();
+       let tima_enabled: bool = self.mmu.io.timers.get_tima_enabled();
+       let tima_clock: u16 = self.mmu.io.timers.get_tima_clock();
 
        if self.tima_overflow {
-           self.cpu.mmu.io.request_timer_interrupt();               
+           self.mmu.io.request_timer_interrupt();               
            self.tima_overflow = false;
        }
 
        for i in 0..cycles {
-           self.cpu.mmu.io.timers.inc_sysclk();
-           let sysclk: u16 = self.cpu.mmu.io.timers.get_sysclk();
+           self.mmu.io.timers.inc_sysclk();
+           let sysclk: u16 = self.mmu.io.timers.get_sysclk();
            if tima_enabled && (sysclk % tima_clock) == 0  {
-               self.tima_overflow = self.cpu.mmu.io.timers.inc_tima();
+               self.tima_overflow = self.mmu.io.timers.inc_tima();
            }
        }
     }
