@@ -1,4 +1,4 @@
-use crate::mmu::address_spaces::generic_addressable::GenericAddressable;
+use crate::mmu::address_spaces::adressable_memory::AdressableMemory;
 use crate::mmu::address_spaces::Addressable;
 
 use std::error::Error;
@@ -8,16 +8,16 @@ use std::os::unix::prelude::FileExt;
 use std::str;
 
 pub struct Rom {
-    rom: GenericAddressable,
-    pub swbank: GenericAddressable,
-    pub eram: GenericAddressable,
+    rom: AdressableMemory,
+    pub swbank: AdressableMemory,
+    pub eram: AdressableMemory,
 }
 
 impl Rom {
     pub fn from_file(path: &str) -> Result<Self, Box<dyn Error>> {
         let mut file: Vec<u8> = fs::read(path)?;
-        let mut rom: GenericAddressable = GenericAddressable::new(0x0000, 0x3FFF)?;
-        let mut swbank: GenericAddressable = GenericAddressable::new(0x4000, 0x7FFF)?;
+        let mut rom: AdressableMemory = AdressableMemory::new(0x0000, 0x3FFF)?;
+        let mut swbank: AdressableMemory = AdressableMemory::new(0x4000, 0x7FFF)?;
 
         for i in 0x000..=0x7FFF {
             if i < 0x4000 {
@@ -30,7 +30,7 @@ impl Rom {
         Ok(Self {
             rom: rom,
             swbank: swbank,
-            eram: GenericAddressable::new(0xA000, 0xBFFF)?,
+            eram: AdressableMemory::new(0xA000, 0xBFFF)?,
         })
     }
 }

@@ -1,4 +1,4 @@
-use crate::mmu::address_spaces::generic_addressable::GenericAddressable;
+use crate::mmu::address_spaces::adressable_memory::AdressableMemory;
 use crate::mmu::address_spaces::Addressable;
 use timers::Timers;
 use std::error::Error;
@@ -6,18 +6,18 @@ use std::error::Error;
 mod timers;
 
 pub struct Io {
-    i1: GenericAddressable,
+    i1: AdressableMemory,
     pub timers: Timers,
-    i2: GenericAddressable,
+    i2: AdressableMemory,
     pub if_flag: u8,
     pub test: String,
 }
 
 impl Io {
     pub fn new() -> Result<Io, Box<dyn Error>> {
-        let mut i1: GenericAddressable = GenericAddressable::new(0xFF00, 0xFF03)?;
+        let mut i1: AdressableMemory = AdressableMemory::new(0xFF00, 0xFF03)?;
         let mut timers: Timers = Timers::new();
-        let mut i2: GenericAddressable = GenericAddressable::new(0xFF08, 0xFF7F)?;
+        let mut i2: AdressableMemory = AdressableMemory::new(0xFF08, 0xFF7F)?;
         i2.write(0xFF44, 0x90);
         Ok(Self {
             i1: i1,

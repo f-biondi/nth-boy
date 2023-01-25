@@ -1,12 +1,12 @@
 use crate::mmu::address_spaces::Addressable;
 
-pub struct GenericAddressable {
+pub struct AdressableMemory {
     memory: Vec<u8>,
     start: u16,
     end: u16,
 }
 
-impl GenericAddressable {
+impl AdressableMemory {
     pub fn new(start: u16, end: u16) -> Result<Self, String> {
         match end.checked_sub(start) {
             Some(size) => Ok(Self {
@@ -25,7 +25,7 @@ impl GenericAddressable {
     }
 }
 
-impl Addressable for GenericAddressable {
+impl Addressable for AdressableMemory {
     fn write(&mut self, location: u16, byte: u8) {
         self.check_range(location);
         self.memory[(location - self.start) as usize] = byte;

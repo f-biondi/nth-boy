@@ -1,4 +1,4 @@
-pub mod generic_addressable;
+pub mod adressable_memory;
 pub mod io;
 pub mod rom;
 

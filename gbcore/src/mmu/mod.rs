@@ -1,20 +1,19 @@
-use address_spaces::generic_addressable::GenericAddressable;
+use address_spaces::adressable_memory::AdressableMemory;
 use address_spaces::io::Io;
 use address_spaces::rom::Rom;
 use address_spaces::Addressable;
 use std::error::Error;
 use std::str;
-use std::process;
 
 pub mod address_spaces;
 
 pub struct Mmu {
     rom: Rom,
-    vram: GenericAddressable,
-    wram: GenericAddressable,
-    oam: GenericAddressable,
+    vram: AdressableMemory,
+    wram: AdressableMemory,
+    oam: AdressableMemory,
     pub io: Io,
-    hram: GenericAddressable,
+    hram: AdressableMemory,
     pub ie_flag: u8,
 }
 
@@ -22,11 +21,11 @@ impl Mmu {
     pub fn from_file(path: &str) -> Result<Mmu, Box<dyn Error>> {
         Ok(Self {
             rom: Rom::from_file(path)?,
-            vram: GenericAddressable::new(0x8000, 0x9FFF)?,
-            wram: GenericAddressable::new(0xC000, 0xDFFF)?,
-            oam: GenericAddressable::new(0xFE00, 0xFE9F)?,
+            vram: AdressableMemory::new(0x8000, 0x9FFF)?,
+            wram: AdressableMemory::new(0xC000, 0xDFFF)?,
+            oam: AdressableMemory::new(0xFE00, 0xFE9F)?,
             io: Io::new()?,
-            hram: GenericAddressable::new(0xFF80, 0xFFFE)?,
+            hram: AdressableMemory::new(0xFF80, 0xFFFE)?,
             ie_flag: 0,
         })
     }
