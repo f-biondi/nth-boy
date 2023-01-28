@@ -1,6 +1,7 @@
 use address_spaces::adressable_memory::AdressableMemory;
 use address_spaces::io::Io;
 use address_spaces::rom::Rom;
+use address_spaces::oam::Oam;
 use address_spaces::Addressable;
 use std::error::Error;
 use std::str;
@@ -11,7 +12,7 @@ pub struct Mmu {
     rom: Rom,
     vram: AdressableMemory,
     wram: AdressableMemory,
-    oam: AdressableMemory,
+    pub oam: Oam,
     pub io: Io,
     hram: AdressableMemory,
     pub ie_flag: u8,
@@ -23,7 +24,7 @@ impl Mmu {
             rom: Rom::from_file(path)?,
             vram: AdressableMemory::new(0x8000, 0x9FFF)?,
             wram: AdressableMemory::new(0xC000, 0xDFFF)?,
-            oam: AdressableMemory::new(0xFE00, 0xFE9F)?,
+            oam: Oam::new()?,
             io: Io::new()?,
             hram: AdressableMemory::new(0xFF80, 0xFFFE)?,
             ie_flag: 0,

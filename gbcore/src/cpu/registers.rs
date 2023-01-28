@@ -69,7 +69,7 @@ impl Registers {
             h: 0x01,
             l: 0x4D,
             sp: 0xfffe,
-            pc: 0x100,
+            pc: 0x0,
         }*/
     }
 

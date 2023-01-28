@@ -1,5 +1,6 @@
 pub mod adressable_memory;
 pub mod io;
+pub mod oam;
 pub mod rom;
 
 pub trait Addressable {

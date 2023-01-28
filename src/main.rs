@@ -27,14 +27,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
 
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/instr_timing/instr_timing.gb")?;
-    let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/cpu_instrs/individual/2.gb")?;
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tetris.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/DMG_ROM.gb")?;
+    let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/cpu_instrs/individual/2.gb")?;
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-
-        for i in buffer.iter_mut() {
-            *i = 0;
-        }
 
         emulator.frame(&mut buffer);
 

@@ -3,18 +3,21 @@
 
 use crate::mmu::address_spaces::Addressable;
 use cpu::Cpu;
+use ppu::Ppu;
 use mmu::Mmu;
 use std::error::Error;
 use std::thread;
 use std::time::{Duration, Instant};
 
 mod cpu;
+mod ppu;
 mod mmu;
 
 const CYCLE_LIMIT: u32 = 70221;
 
 pub struct Device {
     cpu: Cpu,
+    ppu: Ppu,
     mmu: Mmu,
     tima_overflow: bool
 }
@@ -23,6 +26,7 @@ impl Device {
     pub fn new(path: &str) -> Result<Device, Box<dyn Error>> {
         Ok(Self {
             cpu: Cpu::new(),
+            ppu: Ppu::new(),
             mmu: Mmu::from_file(path)?,
             tima_overflow: false
         })
@@ -33,6 +37,7 @@ impl Device {
 
         while total_cycles < CYCLE_LIMIT {
             let cycles: u8 = self.cpu.tick(&mut self.mmu);
+            self.ppu.tick(&mut self.mmu, buffer, cycles);
             self.update_timers(cycles);
             self.mmu.test();
             total_cycles += cycles as u32;
