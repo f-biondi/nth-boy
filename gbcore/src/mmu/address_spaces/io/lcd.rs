@@ -3,14 +3,14 @@ use crate::mmu::address_spaces::Addressable;
 pub struct Lcd {
     lcdc: u8,
     stat: u8,
-    scy: u8,
-    scx: u8,
+    pub scy: u8,
+    pub scx: u8,
     pub ly: u8,
     lyc: u8,
     dma: u8,
     bgp: u8,
-    obp0: u8,
-    obp1: u8,
+    pub obp0: u8,
+    pub obp1: u8,
     wy: u8,
     wx: u8,
 }
@@ -53,11 +53,11 @@ impl Lcd {
         if (self.lcdc & 0x10) != 0 {
             0x8000
         } else {
-            0x8800
+            0x9000
         }
     }
 
-    pub fn get_bg_tile_data(&self) -> u16 {
+    pub fn get_bg_tile_map(&self) -> u16 {
         if (self.lcdc & 0x08) != 0 {
             0x9C00
         } else {

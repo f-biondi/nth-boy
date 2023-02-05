@@ -13,7 +13,7 @@ mod cpu;
 mod ppu;
 mod mmu;
 
-const CYCLE_LIMIT: u32 = 70221;
+const CYCLE_LIMIT: u32 = 70224;
 
 pub struct Device {
     cpu: Cpu,

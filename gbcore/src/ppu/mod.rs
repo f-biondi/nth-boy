@@ -1,5 +1,8 @@
 use crate::mmu::address_spaces::oam::Sprite;
 use crate::Mmu;
+use bg_fetcher::BgFetcher;
+
+mod bg_fetcher;
 
 enum PpuState {
     OAM_SEARCH,
@@ -11,7 +14,7 @@ enum PpuState {
 pub struct Ppu {
     state: PpuState,
     sprites: Vec<Sprite>,
-    ticks: u32,
+    ticks: u16,
 }
 
 impl Ppu {
@@ -77,6 +80,12 @@ impl Ppu {
 
     fn change_state(&mut self, state: PpuState) {
         self.state = state;
+        self.ticks = 0;
+    }
+
+    fn reset(&mut self) {
+        self.state = PpuState::OAM_SEARCH;
+        self.sprites = Vec::new();
         self.ticks = 0;
     }
 }
