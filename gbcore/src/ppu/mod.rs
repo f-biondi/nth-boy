@@ -1,6 +1,7 @@
 use crate::mmu::address_spaces::oam::Sprite;
 use crate::Mmu;
 use bg_fetcher::BgFetcher;
+use std::collections::VecDeque;
 
 mod bg_fetcher;
 
@@ -14,6 +15,9 @@ enum PpuState {
 pub struct Ppu {
     state: PpuState,
     sprites: Vec<Sprite>,
+    x_counter: u8,
+    window_line_counter: u8,
+    bg_fetcher: BgFetcher,
     ticks: u16,
 }
 
@@ -22,6 +26,9 @@ impl Ppu {
         Self {
             state: PpuState::OAM_SEARCH,
             sprites: Vec::new(),
+            x_counter: 0,
+            window_line_counter: 0,
+            bg_fetcher: BgFetcher::new(),
             ticks: 0,
         }
     }
@@ -34,7 +41,7 @@ impl Ppu {
             self.ticks += 1;
             match &self.state {
                 OAM_SEARCH => self.oam_search(mmu),
-                PIXEL_TRANSFER => self.pixel_transfer(),
+                PIXEL_TRANSFER => self.pixel_transfer(mmu, buffer),
                 H_BLANK => self.h_blank(mmu),
                 V_BLANK => self.v_blank(),
             }
@@ -61,16 +68,27 @@ impl Ppu {
         }
     }
 
-    fn pixel_transfer(&mut self) {
+    fn pixel_transfer(&mut self, mmu: &mut Mmu, buffer: &mut Vec<u32>) {
+
+        self.bg_fetcher.tick(mmu, &mut self.x_counter, self.window_line_counter);
+
+        if self.bg_fetcher.fifo.len() > 0 {
+        } 
+
+        if self.x_counter == 160 {
+            self.change_state(PpuState::H_BLANK);
+        }
     }
 
     fn h_blank(&mut self, mmu: &mut Mmu) {
         if self.ticks == 456 {
-            let new_state: PpuState = if mmu.io.lcd.ly < 144 {
-                PpuState::OAM_SEARCH
+            let mut new_state: PpuState;
+            if mmu.io.lcd.ly < 144 {
+                mmu.io.lcd.ly += 1;
+                new_state = PpuState::OAM_SEARCH
             } else {
-                PpuState::V_BLANK
-            };
+                new_state = PpuState::V_BLANK
+            }
             self.change_state(new_state);
         }
     }
@@ -86,6 +104,9 @@ impl Ppu {
     fn reset(&mut self) {
         self.state = PpuState::OAM_SEARCH;
         self.sprites = Vec::new();
+        self.bg_fetcher = BgFetcher::new();
+        self.x_counter = 0;
+        self.window_line_counter = 0;
         self.ticks = 0;
     }
 }
