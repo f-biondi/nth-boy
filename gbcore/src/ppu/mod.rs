@@ -15,7 +15,6 @@ enum PpuState {
 pub struct Ppu {
     state: PpuState,
     sprites: Vec<Sprite>,
-    x_counter: u8,
     window_line_counter: u8,
     bg_fetcher: BgFetcher,
     ticks: u16,
@@ -26,7 +25,6 @@ impl Ppu {
         Self {
             state: PpuState::OAM_SEARCH,
             sprites: Vec::new(),
-            x_counter: 0,
             window_line_counter: 0,
             bg_fetcher: BgFetcher::new(),
             ticks: 0,
@@ -72,12 +70,13 @@ impl Ppu {
 
         self.bg_fetcher.tick(mmu, &mut self.x_counter, self.window_line_counter);
 
-        if self.bg_fetcher.fifo.len() > 0 {
+        let pixel: u8 = self.bg_fetcher.fifo.pop_front();
+
+        if let Some(color) = pixel {
+            let pixel_index: u32 = self.x_counter + (mmu.io.lc.ly * 160);
+            if self.mmu.
         } 
 
-        if self.x_counter == 160 {
-            self.change_state(PpuState::H_BLANK);
-        }
     }
 
     fn h_blank(&mut self, mmu: &mut Mmu) {
@@ -105,7 +104,6 @@ impl Ppu {
         self.state = PpuState::OAM_SEARCH;
         self.sprites = Vec::new();
         self.bg_fetcher = BgFetcher::new();
-        self.x_counter = 0;
         self.window_line_counter = 0;
         self.ticks = 0;
     }
