@@ -15,7 +15,7 @@ pub struct BgFetcher {
     tile_no: u8,
     data_low: u8,
     data_high: u8,
-    x_counter: u8,
+    pub x_counter: u8,
     window: bool,
     ready: bool
 }
@@ -37,10 +37,10 @@ impl BgFetcher {
     pub fn tick(&mut self, mmu: &mut Mmu, window_line_counter: u8) {
         if self.ready {
             match &self.state {
-                FETCH_NO => self.fetch_no(mmu, window_line_counter),
-                FETCH_DATA_LOW => self.fetch_data_low(mmu, window_line_counter),
-                FETCH_DATA_HIGH => self.fetch_data_high(mmu, window_line_counter),
-                PUSH => self.push(),
+                FetchState::FETCH_NO => self.fetch_no(mmu, window_line_counter),
+                FetchState::FETCH_DATA_LOW => self.fetch_data_low(mmu, window_line_counter),
+                FetchState::FETCH_DATA_HIGH => self.fetch_data_high(mmu, window_line_counter),
+                FetchState::PUSH => self.push(),
             }
         }
         self.ready = true;
@@ -56,7 +56,7 @@ impl BgFetcher {
         offset += if self.window {
             32 * ((window_line_counter) as u16 / 8)
         } else {
-            32 * (((mmu.io.lcd.ly + mmu.io.lcd.scy) as u16 & 0xFF) / 8)
+            32 * ((((mmu.io.lcd.ly as u16) + (mmu.io.lcd.scy as u16)) & 0xFF) / 8)
         };
 
         offset &= 0x3ff;
@@ -75,11 +75,11 @@ impl BgFetcher {
         let offset: u16 = if self.window {
             (2 * (window_line_counter % 8)).into()
         } else {
-            (2 * ((mmu.io.lcd.ly + mmu.io.lcd.scy) % 8)).into()
+            (2 * (((mmu.io.lcd.ly as u16) + (mmu.io.lcd.scy as u16)) % 8))
         };
 
         let base_address: u16 = if mmu.io.lcd.get_tile_data() == 0x8000 {
-            0x8000u16 + (self.tile_no * 16) as u16
+            0x8000u16 + (self.tile_no as u16 * 16)
         } else {
             0x9000u16.wrapping_add(((self.tile_no as i8) * 16) as u16)
         };
@@ -89,19 +89,21 @@ impl BgFetcher {
 
     fn fetch_data_low(&mut self, mmu: &Mmu, window_line_counter: u8) {
         self.data_low = mmu.read(self.get_tile_data_start_address(mmu, window_line_counter));
+        self.change_state(FetchState::FETCH_DATA_HIGH); 
     }
     
     //TODO: needs delay?
     fn fetch_data_high(&mut self, mmu: &Mmu, window_line_counter: u8) {
         self.data_high = mmu.read(self.get_tile_data_start_address(mmu, window_line_counter) + 1);
+        self.change_state(FetchState::PUSH); 
     }
 
     fn push(&mut self) {
         if self.fifo.len() == 0 {
-            for i in 0..8 {
+            for i in (0..8).rev() {
                 let mask: u8 = u8::pow(2, i);
-                let msb: u8 = (self.data_high & mask) >> (mask - 1);
-                let lsb: u8 = (self.data_low & mask) >> (mask - 1);
+                let msb: u8 = (self.data_high & mask) >> i;
+                let lsb: u8 = (self.data_low & mask) >> i;
                 let color: u8 = (msb << 1) | lsb;
                 self.fifo.push_back(color);
             }

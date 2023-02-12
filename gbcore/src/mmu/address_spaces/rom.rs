@@ -37,7 +37,7 @@ impl Rom {
 
 impl Addressable for Rom {
     fn write(&mut self, location: u16, byte: u8) {
-        panic!("write to rom not implemented {:#X}", location);
+        //panic!("write to rom not implemented {:#X}", location);
     }
     fn read(&self, location: u16) -> u8 {
         self.rom.read(location)

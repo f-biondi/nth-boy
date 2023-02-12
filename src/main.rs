@@ -3,7 +3,7 @@
 
 use gbcore::Device;
 use std::error::Error;
-use minifb::{Key, ScaleMode, Window, WindowOptions};
+use minifb::{Key, ScaleMode, Scale, Window, WindowOptions};
 
 const WIDTH: usize = 160;
 const HEIGHT: usize = 144;
@@ -13,12 +13,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         "nth-boy",
         WIDTH,
         HEIGHT,
-        WindowOptions::default(),
-        /*WindowOptions {
-            resize: true,
-            scale_mode: ScaleMode::UpperLeft,
+        WindowOptions {
+            scale: Scale::X4,
             ..WindowOptions::default()
-        },*/
+        },
     )
     .expect("Unable to create window");
 
@@ -26,10 +24,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
 
-    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/instr_timing/instr_timing.gb")?;
+    let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/instr_timing/instr_timing.gb")?;
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tetris.gb")?;
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/DMG_ROM.gb")?;
-    let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/cpu_instrs/individual/2.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/cpu_instrs/individual/2.gb")?;
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/dmg-acid2.gb")?;
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
