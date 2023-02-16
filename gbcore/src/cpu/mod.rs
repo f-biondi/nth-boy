@@ -1382,7 +1382,7 @@ impl Cpu {
     }
 
     fn stop(&mut self) {
-        //panic!("stop not implemented");
+        panic!("stop not implemented");
     }
 
     //TODO: halt bug

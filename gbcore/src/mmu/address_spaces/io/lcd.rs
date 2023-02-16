@@ -2,17 +2,17 @@ use crate::mmu::address_spaces::Addressable;
 
 pub struct Lcd {
     lcdc: u8,
-    stat: u8,
+    pub stat: u8,
     pub scy: u8,
     pub scx: u8,
     pub ly: u8,
-    lyc: u8,
+    pub lyc: u8,
     dma: u8,
     bgp: u8,
     pub obp0: u8,
     pub obp1: u8,
-    wy: u8,
-    wx: u8,
+    pub wy: u8,
+    pub wx: u8,
 }
 
 impl Lcd {
@@ -81,7 +81,52 @@ impl Lcd {
         (self.lcdc & 0x01) != 0
     }
 
+    pub fn oam_stat_enabled(&self) -> bool {
+        (self.stat & 0x20) != 0
+    }
 
+    pub fn vblank_stat_enabled(&self) -> bool {
+        (self.stat & 0x10) != 0
+    }
+
+    pub fn hblank_stat_enabled(&self) -> bool {
+        (self.stat & 0x08) != 0
+    }
+
+    pub fn ly_equal_lyc_stat_enabled(&self) -> bool {
+        (self.stat & 0x40) != 0
+    }
+
+    pub fn set_coincidence_flag(&mut self) {
+        self.stat |= 0x04;
+    }
+
+    pub fn unset_coincidence_flag(&mut self) {
+        self.stat &= 0xFB;
+    }
+
+    fn reset_ppu_mode(&mut self) {
+        self.stat &= 0xFC;
+    }
+
+    pub fn set_hblank_ppu_mode(&mut self) {
+        self.reset_ppu_mode();
+    }
+
+    pub fn set_vblank_ppu_mode(&mut self) {
+        self.reset_ppu_mode();
+        self.stat |= 0x01;
+    }
+
+    pub fn set_oam_ppu_mode(&mut self) {
+        self.reset_ppu_mode();
+        self.stat |= 0x02;
+    }
+
+    pub fn set_draw_ppu_mode(&mut self) {
+        self.reset_ppu_mode();
+        self.stat |= 0x03;
+    }
 }
 
 impl Addressable for Lcd {

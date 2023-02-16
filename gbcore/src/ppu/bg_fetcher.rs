@@ -16,7 +16,7 @@ pub struct BgFetcher {
     data_low: u8,
     data_high: u8,
     pub x_counter: u8,
-    window: bool,
+     window: bool,
     ready: bool
 }
 
@@ -46,25 +46,33 @@ impl BgFetcher {
         self.ready = true;
     }
 
+    pub fn switch_to_window_mode(&mut self) {
+        self.reset();
+        self.window = true;
+    }
+
     fn fetch_no(&mut self, mmu: &Mmu, window_line_counter: u8) {
-        let mut offset: u16 = self.x_counter as u16;
+        let mut offset: u16 = 0;
 
         if !self.window {
-            offset += ((mmu.io.lcd.scx / 8) & 0x1f) as u16;
+            offset += ((self.x_counter + (mmu.io.lcd.scx / 8)) & 0x1f) as u16;
+        } else {
+            offset += self.x_counter as u16;
         }
 
         offset += if self.window {
-            32 * ((window_line_counter) as u16 / 8)
+            32u16.wrapping_mul((window_line_counter) as u16 / 8)
         } else {
-            32 * ((((mmu.io.lcd.ly as u16) + (mmu.io.lcd.scy as u16)) & 0xFF) / 8)
+            // cells in line * line number 
+            32u16.wrapping_mul((((mmu.io.lcd.ly as u16).wrapping_add(mmu.io.lcd.scy as u16)) & 0xFF) / 8)
         };
 
         offset &= 0x3ff;
 
         let tile_no_add: u16 = if self.window {
-            mmu.io.lcd.get_window_tile_map() + offset
+            mmu.io.lcd.get_window_tile_map().wrapping_add(offset)
         } else {
-            mmu.io.lcd.get_bg_tile_map() + offset
+            mmu.io.lcd.get_bg_tile_map().wrapping_add(offset)
         };
 
         self.tile_no = mmu.read(tile_no_add);
@@ -73,28 +81,33 @@ impl BgFetcher {
 
     fn get_tile_data_start_address(&mut self, mmu: &Mmu, window_line_counter: u8) -> u16 {
         let offset: u16 = if self.window {
-            (2 * (window_line_counter % 8)).into()
+            (2u8.wrapping_mul(window_line_counter % 8)).into()
         } else {
-            (2 * (((mmu.io.lcd.ly as u16) + (mmu.io.lcd.scy as u16)) % 8))
+            (2u16.wrapping_mul(((mmu.io.lcd.ly as u16).wrapping_add(mmu.io.lcd.scy as u16)) % 8))
         };
 
         let base_address: u16 = if mmu.io.lcd.get_tile_data() == 0x8000 {
-            0x8000u16 + (self.tile_no as u16 * 16)
+            0x8000u16.wrapping_add(self.tile_no as u16 * 16)
         } else {
-            0x9000u16.wrapping_add(((self.tile_no as i8) * 16) as u16)
+            let pointer: i32 = 0x9000;
+            let signed_tile_no: i8 = self.tile_no as i8;
+            let tile_offset: i32 = (signed_tile_no as i32).wrapping_mul(16);
+            (pointer + tile_offset) as u16
         };
 
         base_address + offset
     }
 
     fn fetch_data_low(&mut self, mmu: &Mmu, window_line_counter: u8) {
-        self.data_low = mmu.read(self.get_tile_data_start_address(mmu, window_line_counter));
+        let add: u16 = self.get_tile_data_start_address(mmu, window_line_counter);
+        self.data_low = mmu.read(add);
+        self.data_high = mmu.read(add+1);
         self.change_state(FetchState::FETCH_DATA_HIGH); 
     }
-    
+
     //TODO: needs delay?
     fn fetch_data_high(&mut self, mmu: &Mmu, window_line_counter: u8) {
-        self.data_high = mmu.read(self.get_tile_data_start_address(mmu, window_line_counter) + 1);
+        //self.data_high = mmu.read((self.data_low + 1);
         self.change_state(FetchState::PUSH); 
     }
 
@@ -116,6 +129,17 @@ impl BgFetcher {
 
     fn change_state(&mut self, state: FetchState) {
         self.state = state;
+        self.ready = false;
+    }
+
+    fn reset(&mut self) {
+        self.fifo = VecDeque::new();
+        self.state = FetchState::FETCH_NO;
+        self.tile_no = 0;
+        self.data_low = 0;
+        self.data_high = 0;
+        self.x_counter = 0;
+        self.window = false;
         self.ready = false;
     }
 }
