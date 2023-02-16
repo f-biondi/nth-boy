@@ -148,7 +148,7 @@ impl Ppu {
                 let pixel_index: u32 = (self.x_position as u32) + ((mmu.io.lcd.ly as u32) * 160);
                 
                 let color: u32 = if mmu.io.lcd.is_bg_window_enabled() {
-                    PALETTE[color_index as usize]
+                    PALETTE[mmu.io.lcd.get_bgp_index(color_index) as usize]
                 } else {
                     0xffffff
                 };

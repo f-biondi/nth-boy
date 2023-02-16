@@ -127,6 +127,16 @@ impl Lcd {
         self.reset_ppu_mode();
         self.stat |= 0x03;
     }
+
+    pub fn get_bgp_index(&mut self, index: u8) -> u8 {
+        match index {
+            0 => self.bgp & 0x03,
+            1 => (self.bgp & 0x0C) >> 2,
+            2 => (self.bgp & 0x30) >> 4,
+            3 => (self.bgp & 0xC0) >> 6,
+            _ => panic!("BGP index out of range [0;3]"),
+        }
+    }
 }
 
 impl Addressable for Lcd {

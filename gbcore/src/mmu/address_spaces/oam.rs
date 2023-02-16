@@ -25,7 +25,7 @@ impl Oam {
 
     pub fn get_sprite(&self, sprite_id: u8) -> Sprite {
         if sprite_id > 39 {
-            panic!("The id {} is not in the range [0, 39]", sprite_id);
+            panic!("The sprite id {} is not in the range [0, 39]", sprite_id);
         }
         let sprite_start: u16 = 0xFE00 + (4 * sprite_id) as u16;
         Sprite {

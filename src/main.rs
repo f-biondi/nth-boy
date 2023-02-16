@@ -28,7 +28,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tetris.gb")?;
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/DMG_ROM.gb")?;
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/cpu_instrs/individual/2.gb")?;
-    let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/dmg-acid2.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/dmg-acid2.gb")?;
+    let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/drmario.gb")?;
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
 
