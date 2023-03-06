@@ -1,17 +1,18 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+use crate::mmu::address_spaces::io::joypad::JoypadState;
 use crate::mmu::address_spaces::Addressable;
 use cpu::Cpu;
-use ppu::Ppu;
 use mmu::Mmu;
+use ppu::Ppu;
 use std::error::Error;
 use std::thread;
 use std::time::{Duration, Instant};
 
 mod cpu;
+pub mod mmu;
 mod ppu;
-mod mmu;
 
 const CYCLE_LIMIT: u32 = 70224;
 
@@ -19,7 +20,7 @@ pub struct Device {
     cpu: Cpu,
     ppu: Ppu,
     mmu: Mmu,
-    tima_overflow: bool
+    tima_overflow: bool,
 }
 
 impl Device {
@@ -28,15 +29,22 @@ impl Device {
             cpu: Cpu::new(),
             ppu: Ppu::new(),
             mmu: Mmu::from_file(path)?,
-            tima_overflow: false
+            tima_overflow: false,
         })
     }
 
-    pub fn frame(&mut self, buffer: &mut Vec<u32>) {
+    pub fn frame(&mut self, buffer: &mut Vec<u32>, joypad_state: JoypadState) {
         let mut total_cycles: u32 = 0;
 
+        self.mmu.io.joypad.set_state(joypad_state);
+
         while total_cycles < CYCLE_LIMIT {
+            if self.mmu.io.joypad.purge_interrupt() {
+                self.mmu.io.request_joypad_interrupt();
+            }
             let cycles: u8 = self.cpu.tick(&mut self.mmu);
+            //self.cpu.dump2(&mut self.mmu);
+            //self.mmu.dma_run();
             self.ppu.tick(&mut self.mmu, buffer, cycles);
             self.update_timers(cycles);
             self.mmu.test();
@@ -45,21 +53,20 @@ impl Device {
     }
 
     fn update_timers(&mut self, cycles: u8) {
-       let tima_enabled: bool = self.mmu.io.timers.get_tima_enabled();
-       let tima_clock: u16 = self.mmu.io.timers.get_tima_clock();
+        let tima_enabled: bool = self.mmu.io.timers.get_tima_enabled();
+        let tima_clock: u16 = self.mmu.io.timers.get_tima_clock();
 
-       if self.tima_overflow {
-           self.mmu.io.request_timer_interrupt();               
-           self.tima_overflow = false;
-       }
+        if self.tima_overflow {
+            self.mmu.io.request_timer_interrupt();
+            self.tima_overflow = false;
+        }
 
-       for i in 0..cycles {
-           self.mmu.io.timers.inc_sysclk();
-           let sysclk: u16 = self.mmu.io.timers.get_sysclk();
-           if tima_enabled && (sysclk % tima_clock) == 0  {
-               self.tima_overflow = self.mmu.io.timers.inc_tima();
-           }
-       }
+        for i in 0..cycles {
+            self.mmu.io.timers.inc_sysclk();
+            let sysclk: u16 = self.mmu.io.timers.get_sysclk();
+            if tima_enabled && (sysclk % tima_clock) == 0 {
+                self.tima_overflow = self.mmu.io.timers.inc_tima();
+            }
+        }
     }
-
 }
