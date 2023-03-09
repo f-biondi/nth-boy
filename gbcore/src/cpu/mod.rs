@@ -1333,7 +1333,6 @@ impl Cpu {
     fn jr_f_i8(&mut self, mmu: &mut Mmu, flag: Flag) {
         let offset: i8 = self.consume_i8(mmu);
         let add: u16 = self.get_relative_add(offset);
-
         if self.reg.getf(&flag) == 1 {
             self.step_cycles(4);
             self.reg.pc = add;
@@ -1381,8 +1380,9 @@ impl Cpu {
         self.ime = Ime::PENDING;
     }
 
+    //TODO: correct implementation
     fn stop(&mut self) {
-        panic!("stop not implemented");
+        //panic!("stop not implemented");
     }
 
     //TODO: halt bug
@@ -1848,7 +1848,7 @@ impl Cpu {
     }
 
     //
-    // TODO
+    // TODO delete
     //
 
     pub fn dump2(&mut self, mmu: &mut Mmu) {
@@ -1880,7 +1880,7 @@ impl Cpu {
 
     pub fn dump3(&mut self, mmu: &mut Mmu) {
         println!(
-            "Step:{} Cycles:{} PC:{:04X?} SP:{:04X?} AF:{:04X?} BC:{:04X?} DE:{:04X?} HL:{:04X?} IME:{} PCMEM:{:02X?},{:02X?},{:02X?},{:02X?}",
+            "Step:{} Cycles:{} PC:{:04X?} SP:{:04X?} AF:{:04X?} BC:{:04X?} DE:{:04X?} HL:{:04X?} PCMEM:{:02X?},{:02X?},{:02X?},{:02X?}",
             self.ops,
             self.cycles,
             self.reg.pc,
@@ -1889,7 +1889,6 @@ impl Cpu {
             self.reg.get16(&Register16::BC),
             self.reg.get16(&Register16::DE),
             self.reg.get16(&Register16::HL),
-            self.getimen(),
             mmu.read(self.reg.pc),
             mmu.read(self.reg.pc.wrapping_add(1)),
             mmu.read(self.reg.pc.wrapping_add(2)),
@@ -1898,14 +1897,13 @@ impl Cpu {
     }
     pub fn dump4(&mut self, mmu: &mut Mmu) {
         println!(
-            "PC:{:04X?} SP:{:04X?} AF:{:04X?} BC:{:04X?} DE:{:04X?} HL:{:04X?} IME:{} PCMEM:{:02X?},{:02X?},{:02X?},{:02X?}",
+            "PC:{:04X?} SP:{:04X?} AF:{:04X?} BC:{:04X?} DE:{:04X?} HL:{:04X?} PCMEM:{:02X?},{:02X?},{:02X?},{:02X?}",
             self.reg.pc,
             self.reg.sp,
             self.reg.get16(&Register16::AF),
             self.reg.get16(&Register16::BC),
             self.reg.get16(&Register16::DE),
             self.reg.get16(&Register16::HL),
-            self.getimen(),
             mmu.read(self.reg.pc),
             mmu.read(self.reg.pc.wrapping_add(1)),
             mmu.read(self.reg.pc.wrapping_add(2)),

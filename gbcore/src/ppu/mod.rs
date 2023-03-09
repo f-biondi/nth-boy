@@ -10,7 +10,7 @@ use crate::mmu::address_spaces::Addressable;
 
 mod pixel_fetcher;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 enum PpuState {
     OAM_SEARCH,
     PIXEL_TRANSFER,
@@ -57,8 +57,6 @@ impl Ppu {
     }
 
     fn handle_stat(&mut self, mmu: &mut Mmu) {
-        //TODO coincidence
-        //
         let stat: bool = (
             (
                 mmu.io.lcd.ly_equal_lyc_stat_enabled() && 
@@ -89,7 +87,7 @@ impl Ppu {
         } else if self.needs_reset {
             self.reset(mmu);
         }
-
+        
         let mut ticks_todo = new_ticks;
 
         while ticks_todo > 0 {
@@ -136,12 +134,7 @@ impl Ppu {
     }
 
     fn handle_scanline_end(&mut self) {
-        self.bg_fetcher = BgFetcher::new();
-        self.x_position = 0;
-        self.discarded_pixels = 0;
-
         if self.window_line {
-            self.window_line = false;
             self.window_line_counter += 1;
         }
     }
@@ -171,7 +164,7 @@ impl Ppu {
         if self.sprite_fetcher.done {
             if mmu.io.lcd.is_window_enabled()
                 && self.wy_equal_ly
-                && self.x_position >= (mmu.io.lcd.wx - 7)
+                && (self.x_position as i16) >= ((mmu.io.lcd.wx as i16) - 7)
                 && !self.window_line
             {
                 self.window_line = true;
@@ -186,8 +179,8 @@ impl Ppu {
             let pixel: Option<Pixel> = self.bg_fetcher.shift();
 
             if let Some(bg_pixel) = pixel {
-                let sprite_pixel: Option<Pixel> = self.sprite_fetcher.shift();
-                if self.discarded_pixels >= (mmu.io.lcd.scx % 8) {
+                if self.window_line || (self.discarded_pixels >= (mmu.io.lcd.scx % 8)) {
+                    let sprite_pixel: Option<Pixel> = self.sprite_fetcher.shift();
                     let pixel_index: u32 = (self.x_position as u32) + ((mmu.io.lcd.get_ly() as u32) * 160);
                     buffer[pixel_index as usize] = self.merge_pixels(mmu, bg_pixel, sprite_pixel);
                     self.x_position += 1;
@@ -287,8 +280,8 @@ impl Ppu {
     fn line_reset(&mut self) {
         self.sprites.clear();
         self.current_sprite = None;
-        self.bg_fetcher = BgFetcher::new();
-        self.sprite_fetcher = SpriteFetcher::new();
+        self.bg_fetcher.reset();
+        self.sprite_fetcher.reset();
         self.discarded_pixels = 0;
         self.window_line = false;
         self.x_position = 0;
@@ -296,16 +289,10 @@ impl Ppu {
 
     fn reset(&mut self, mmu: &mut Mmu) {
         self.change_state(mmu, PpuState::OAM_SEARCH, true);
-        self.sprites.clear();
-        self.current_sprite = None;
-        self.bg_fetcher = BgFetcher::new();
-        self.sprite_fetcher = SpriteFetcher::new();
+        self.line_reset();  
         self.wy_equal_ly = false;
         mmu.io.lcd.set_ly(0);
-        self.discarded_pixels = 0;
-        self.window_line = false;
         self.window_line_counter = 0;
-        self.x_position = 0;
         self.needs_reset = false;
     }
 }

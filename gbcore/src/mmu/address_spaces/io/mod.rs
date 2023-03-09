@@ -22,9 +22,11 @@ pub struct Io {
 
 impl Io {
     pub fn new() -> Result<Io, Box<dyn Error>> {
+        let mut i1: AdressableMemory = AdressableMemory::new(0xFF01, 0xFF02)?;
+        i1.write(0xFF02, 0x7E);
         Ok(Self {
             joypad: Joypad::new(),
-            i1: AdressableMemory::new(0xFF01, 0xFF02)?,
+            i1: i1,
             timers: Timers::new(),
             i2: AdressableMemory::new(0xFF10, 0xFF3F)?,
             lcd: Lcd::new(),
@@ -87,10 +89,10 @@ impl Addressable for Io {
             0xFF00 => self.joypad.write(location, byte),
             0xFF01..=0xFF02 => {
                 if location == 0xFF02 && byte == 0x81 {
-                    let cb: [u8; 1] = [self.i1.read(0xff01)];
-                    let c: &str = std::str::from_utf8(&cb).unwrap();
-                    self.test = String::from(c);
-                    self.i1.write(0xff02, 0x0);
+                    let mut sc: u8 = byte;
+                    self.i1.write(0xff02, 0x01);
+                    self.i1.write(0xff01, 0x00);
+                    self.request_serial_interrupt();
                 } else {
                     self.i1.write(location, byte);
                 }

@@ -1,7 +1,7 @@
 use address_spaces::adressable_memory::AdressableMemory;
 use address_spaces::io::Io;
 use address_spaces::oam::Oam;
-use address_spaces::rom::Rom;
+use address_spaces::cart::Cart;
 use address_spaces::Addressable;
 use std::error::Error;
 use std::str;
@@ -9,7 +9,7 @@ use std::str;
 pub mod address_spaces;
 
 pub struct Mmu {
-    rom: Rom,
+    cart: Cart,
     vram: AdressableMemory,
     wram: AdressableMemory,
     pub oam: Oam,
@@ -22,7 +22,7 @@ pub struct Mmu {
 impl Mmu {
     pub fn from_file(path: &str) -> Result<Mmu, Box<dyn Error>> {
         Ok(Self {
-            rom: Rom::from_file(path)?,
+            cart: Cart::from_file(path)?,
             vram: AdressableMemory::new(0x8000, 0x9FFF)?,
             wram: AdressableMemory::new(0xC000, 0xDFFF)?,
             oam: Oam::new()?,
@@ -43,7 +43,7 @@ impl Mmu {
                 let source_add: u16 = ((self.dma as u16) << 8) | lsb;
                 let dest_add: u16 = 0xFE00 | lsb;
                 self.dma_current = if self.dma <= 0x7F {
-                    self.rom.read(source_add)
+                    self.cart.read(source_add)
                 } else {
                     self.wram.read(source_add)
                 };
@@ -68,10 +68,10 @@ impl Mmu {
 impl Addressable for Mmu {
     fn write(&mut self, location: u16, byte: u8) {
         match location {
-            0x0000..=0x3FFF => self.rom.write(location, byte),
-            0x4000..=0x7FFF => self.rom.swbank.write(location, byte),
+            0x0000..=0x3FFF => self.cart.write(location, byte),
+            0x4000..=0x7FFF => self.cart.write(location, byte),
             0x8000..=0x9FFF => self.vram.write(location, byte),
-            0xA000..=0xBFFF => self.rom.eram.write(location, byte),
+            0xA000..=0xBFFF => self.cart.write(location, byte),
             0xC000..=0xDFFF => self.wram.write(location, byte),
             0xE000..=0xFDFF => self.wram.write(location - 0xE000 + 0xC000, byte),
             0xFE00..=0xFE9F => self.oam.write(location, byte),
@@ -85,10 +85,10 @@ impl Addressable for Mmu {
 
     fn read(&self, location: u16) -> u8 {
         match location {
-            0x0000..=0x3FFF => self.rom.read(location),
-            0x4000..=0x7FFF => self.rom.swbank.read(location),
+            0x0000..=0x3FFF => self.cart.read(location),
+            0x4000..=0x7FFF => self.cart.read(location),
             0x8000..=0x9FFF => self.vram.read(location),
-            0xA000..=0xBFFF => self.rom.eram.read(location),
+            0xA000..=0xBFFF => self.cart.read(location),
             0xC000..=0xDFFF => self.wram.read(location),
             0xE000..=0xFDFF => self.wram.read(location - 0xE000 + 0xC000),
             0xFE00..=0xFE9F => self.oam.read(location),

@@ -62,8 +62,7 @@ impl SpriteFetcher {
                 15 - ((mmu.io.lcd.get_ly() + 16) - sprite.y_position)
             } else {
                 (mmu.io.lcd.get_ly() + 16) - sprite.y_position
-            };
-            if line > 7 {
+            }; if line > 7 {
                 sprite.tile_no | 0x01
             } else {
                 sprite.tile_no & 0xFE
@@ -152,13 +151,13 @@ impl SpriteFetcher {
 
     pub fn reset(&mut self) {
         //self.fifo.clear();
-        self.fifo = MergePixelFifo::with_capacity(8);
+        self.fifo.full_clear();
         self.state = FetchState::FETCH_NO;
         self.tile_no = 0;
         self.data_start_add = 0;
         self.data_low = 0;
         self.data_high = 0;
         self.ready = false;
-        self.done = false;
+        self.done = true;
     }
 }

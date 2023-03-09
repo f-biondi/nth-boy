@@ -26,7 +26,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
 
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/instr_timing/instr_timing.gb")?;
-    let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tetris.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tetris.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/boxxle.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/lode.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/alleyway.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/flipull.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/cpu_instrs/cpu_instrs.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/midori.gb")?;
+    let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/kirby.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/mario.gb")?;
+    //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/zelda.gb")?;
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/DMG_ROM.gb")?;
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/tests/cpu_instrs/individual/2.gb")?;
     //let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/dmg-acid2.gb")?;

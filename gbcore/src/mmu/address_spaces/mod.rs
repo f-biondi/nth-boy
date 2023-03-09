@@ -1,7 +1,7 @@
 pub mod adressable_memory;
 pub mod io;
 pub mod oam;
-pub mod rom;
+pub mod cart;
 
 pub trait Addressable {
     fn write(&mut self, location: u16, byte: u8);

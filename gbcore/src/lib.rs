@@ -42,12 +42,11 @@ impl Device {
             if self.mmu.io.joypad.purge_interrupt() {
                 self.mmu.io.request_joypad_interrupt();
             }
+            //self.cpu.dump3(&mut self.mmu);
             let cycles: u8 = self.cpu.tick(&mut self.mmu);
-            //self.cpu.dump2(&mut self.mmu);
             //self.mmu.dma_run();
             self.ppu.tick(&mut self.mmu, buffer, cycles);
             self.update_timers(cycles);
-            self.mmu.test();
             total_cycles += cycles as u32;
         }
     }

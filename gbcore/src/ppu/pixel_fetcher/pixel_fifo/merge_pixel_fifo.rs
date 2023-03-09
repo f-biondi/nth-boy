@@ -20,6 +20,13 @@ impl MergePixelFifo {
             pop_i: 0,
         }
     }
+
+    pub fn full_clear(&mut self) {
+        self.clear();
+        for i in 0..self.capacity {
+            self.buffer[i as usize] = None;
+        }
+    }
 }
 
 impl PixelFifo for MergePixelFifo {

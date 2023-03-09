@@ -35,10 +35,10 @@ impl Joypad {
                 start: false,
                 select: false,
             },
-            p13: 0,
-            p12: 0,
-            p11: 0,
-            p10: 0,
+            p13: 1,
+            p12: 1,
+            p11: 1,
+            p10: 1,
             interrupt: false,
             direction_selected: false,
             action_selected: false,
@@ -100,12 +100,27 @@ impl Joypad {
 
 impl Addressable for Joypad {
     fn write(&mut self, location: u16, byte: u8) {
-        self.action_selected = (byte & 0x20) == 0;
-        self.direction_selected = (byte & 0x10) == 0;
+        if byte == 0x20 || byte == 0x10 {
+            self.action_selected = (byte & 0x20) == 0;
+            self.direction_selected = (byte & 0x10) == 0;
+        } else {
+            self.action_selected = false;
+            self.direction_selected = false;
+        }
         self.compute_value();
     }
 
     fn read(&self, location: u16) -> u8 {
-        (self.p13 << 3) | (self.p12 << 2) | (self.p11 << 1) | self.p10
+        let p14: u8 = if self.direction_selected {
+            0
+        } else {
+            1
+        };
+        let p15: u8 = if self.action_selected {
+            0
+        } else {
+            1
+        };
+        (1 << 7) | (1 << 6) | (p15 << 5) | (p14 << 4) | (self.p13 << 3) | (self.p12 << 2) | (self.p11 << 1) | self.p10
     }
 }
