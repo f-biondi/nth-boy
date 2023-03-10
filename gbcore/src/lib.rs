@@ -68,4 +68,8 @@ impl Device {
             }
         }
     }
+
+    pub fn save(&self) -> Result<(), Box<dyn Error>> {
+        self.mmu.cart.save()
+    }
 }

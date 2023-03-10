@@ -45,12 +45,12 @@ impl Lcd {
 
     pub fn set_ly(&mut self, byte: u8) {
         self.ly = byte;
-        self.update_coincidence_flag();        
+        self.update_coincidence_flag();
     }
 
     pub fn inc_ly(&mut self, inc: u8) {
         self.ly = self.ly.wrapping_add(inc);
-        self.update_coincidence_flag();        
+        self.update_coincidence_flag();
     }
 
     pub fn get_ly(&self) -> u8 {
@@ -59,7 +59,7 @@ impl Lcd {
 
     pub fn set_lyc(&mut self, byte: u8) {
         self.lyc = byte;
-        self.update_coincidence_flag();        
+        self.update_coincidence_flag();
     }
 
     pub fn get_lyc(&self) -> u8 {

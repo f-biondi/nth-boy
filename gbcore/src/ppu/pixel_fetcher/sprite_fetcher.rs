@@ -62,7 +62,8 @@ impl SpriteFetcher {
                 15 - ((mmu.io.lcd.get_ly() + 16) - sprite.y_position)
             } else {
                 (mmu.io.lcd.get_ly() + 16) - sprite.y_position
-            }; if line > 7 {
+            };
+            if line > 7 {
                 sprite.tile_no | 0x01
             } else {
                 sprite.tile_no & 0xFE
@@ -80,7 +81,10 @@ impl SpriteFetcher {
             ((mmu.io.lcd.ly as u16).wrapping_add(mmu.io.lcd.scy as u16)) % 8
         };*/
         let mut line_index: u16 = if sprite.y_flip {
-            (7u16.wrapping_sub((mmu.io.lcd.get_ly() as u16).wrapping_sub(sprite.y_position.wrapping_sub(16) as u16))) % 8
+            (7u16.wrapping_sub(
+                (mmu.io.lcd.get_ly() as u16)
+                    .wrapping_sub(sprite.y_position.wrapping_sub(16) as u16),
+            )) % 8
         } else {
             (mmu.io.lcd.get_ly() as u16).wrapping_sub(sprite.y_position.wrapping_sub(16) as u16) % 8
         };

@@ -111,16 +111,15 @@ impl Addressable for Joypad {
     }
 
     fn read(&self, location: u16) -> u8 {
-        let p14: u8 = if self.direction_selected {
-            0
-        } else {
-            1
-        };
-        let p15: u8 = if self.action_selected {
-            0
-        } else {
-            1
-        };
-        (1 << 7) | (1 << 6) | (p15 << 5) | (p14 << 4) | (self.p13 << 3) | (self.p12 << 2) | (self.p11 << 1) | self.p10
+        let p14: u8 = if self.direction_selected { 0 } else { 1 };
+        let p15: u8 = if self.action_selected { 0 } else { 1 };
+        (1 << 7)
+            | (1 << 6)
+            | (p15 << 5)
+            | (p14 << 4)
+            | (self.p13 << 3)
+            | (self.p12 << 2)
+            | (self.p11 << 1)
+            | self.p10
     }
 }

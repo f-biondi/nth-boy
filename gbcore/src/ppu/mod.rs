@@ -1,4 +1,5 @@
 use crate::mmu::address_spaces::oam::Sprite;
+use crate::mmu::address_spaces::Addressable;
 use crate::ppu::pixel_fetcher::Pixel;
 use crate::ppu::pixel_fetcher::Pixelfetcher;
 use crate::Mmu;
@@ -6,7 +7,6 @@ use pixel_fetcher::bg_fetcher::BgFetcher;
 use pixel_fetcher::sprite_fetcher::SpriteFetcher;
 use pixel_fetcher::Palette;
 use std::collections::VecDeque;
-use crate::mmu::address_spaces::Addressable;
 
 mod pixel_fetcher;
 
@@ -57,23 +57,11 @@ impl Ppu {
     }
 
     fn handle_stat(&mut self, mmu: &mut Mmu) {
-        let stat: bool = (
-            (
-                mmu.io.lcd.ly_equal_lyc_stat_enabled() && 
-                mmu.io.lcd.get_ly() == mmu.io.lcd.get_lyc()
-            ) ||
-            (
-                mmu.io.lcd.oam_stat_enabled() &&
-                &self.state == &PpuState::OAM_SEARCH
-            ) ||
-            (
-                mmu.io.lcd.vblank_stat_enabled() &&
-                &self.state == &PpuState::V_BLANK
-            ) ||
-            (
-                mmu.io.lcd.hblank_stat_enabled() &&
-                &self.state == &PpuState::H_BLANK
-            ));
+        let stat: bool = ((mmu.io.lcd.ly_equal_lyc_stat_enabled()
+            && mmu.io.lcd.get_ly() == mmu.io.lcd.get_lyc())
+            || (mmu.io.lcd.oam_stat_enabled() && &self.state == &PpuState::OAM_SEARCH)
+            || (mmu.io.lcd.vblank_stat_enabled() && &self.state == &PpuState::V_BLANK)
+            || (mmu.io.lcd.hblank_stat_enabled() && &self.state == &PpuState::H_BLANK));
         if stat && !self.old_stat {
             mmu.io.request_lcd_stat_interrupt();
         }
@@ -81,13 +69,12 @@ impl Ppu {
     }
 
     pub fn tick(&mut self, mmu: &mut Mmu, buffer: &mut Vec<u32>, new_ticks: u8) {
-        
         if !mmu.io.lcd.is_display_enabled() {
             self.needs_reset = true;
         } else if self.needs_reset {
             self.reset(mmu);
         }
-        
+
         let mut ticks_todo = new_ticks;
 
         while ticks_todo > 0 {
@@ -121,9 +108,8 @@ impl Ppu {
             {
                 self.sprites.push(sprite);
             }
-
         }
-        
+
         if self.ticks == 80 {
             self.change_state(mmu, PpuState::PIXEL_TRANSFER, true);
 
@@ -181,7 +167,8 @@ impl Ppu {
             if let Some(bg_pixel) = pixel {
                 if self.window_line || (self.discarded_pixels >= (mmu.io.lcd.scx % 8)) {
                     let sprite_pixel: Option<Pixel> = self.sprite_fetcher.shift();
-                    let pixel_index: u32 = (self.x_position as u32) + ((mmu.io.lcd.get_ly() as u32) * 160);
+                    let pixel_index: u32 =
+                        (self.x_position as u32) + ((mmu.io.lcd.get_ly() as u32) * 160);
                     buffer[pixel_index as usize] = self.merge_pixels(mmu, bg_pixel, sprite_pixel);
                     self.x_position += 1;
                 } else {
@@ -269,14 +256,17 @@ impl Ppu {
             self.ticks = 0;
         }
         match &self.state {
-            PpuState::OAM_SEARCH => {self.line_reset(); mmu.io.lcd.set_oam_ppu_mode()},
+            PpuState::OAM_SEARCH => {
+                self.line_reset();
+                mmu.io.lcd.set_oam_ppu_mode()
+            }
             PpuState::PIXEL_TRANSFER => mmu.io.lcd.set_draw_ppu_mode(),
             PpuState::H_BLANK => mmu.io.lcd.set_hblank_ppu_mode(),
             PpuState::V_BLANK => mmu.io.lcd.set_vblank_ppu_mode(),
             _ => {}
         }
     }
-    
+
     fn line_reset(&mut self) {
         self.sprites.clear();
         self.current_sprite = None;
@@ -289,7 +279,7 @@ impl Ppu {
 
     fn reset(&mut self, mmu: &mut Mmu) {
         self.change_state(mmu, PpuState::OAM_SEARCH, true);
-        self.line_reset();  
+        self.line_reset();
         self.wy_equal_ly = false;
         mmu.io.lcd.set_ly(0);
         self.window_line_counter = 0;

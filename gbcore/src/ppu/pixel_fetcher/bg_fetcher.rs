@@ -91,7 +91,9 @@ impl BgFetcher {
         let offset: u16 = if self.window {
             (2u8.wrapping_mul(window_line_counter % 8)).into()
         } else {
-            2u16.wrapping_mul(((mmu.io.lcd.get_ly() as u16).wrapping_add(mmu.io.lcd.scy as u16)) % 8)
+            2u16.wrapping_mul(
+                ((mmu.io.lcd.get_ly() as u16).wrapping_add(mmu.io.lcd.scy as u16)) % 8,
+            )
         };
 
         let base_address: u16 = if mmu.io.lcd.get_tile_data() == 0x8000 {

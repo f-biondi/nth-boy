@@ -1,5 +1,8 @@
 use std::error::Error;
 
+//TODO add MBC5
+const CART_TYPE_BATTERY: &'static [u8] = &[0x03, 0x06, 0x0F, 0x10, 0x13];
+
 pub struct Header {
     pub title: String,
     pub cart_type: u8,
@@ -30,7 +33,7 @@ impl Header {
 
     pub fn get_rom_banks(&self) -> u16 {
         match self.rom_size {
-            0  => 2,
+            0 => 2,
             1 => 4,
             2 => 8,
             3 => 16,
@@ -54,8 +57,16 @@ impl Header {
         }
     }
 
+    pub fn has_battery(&self) -> bool {
+        CART_TYPE_BATTERY.contains(&self.cart_type)
+    }
+
     pub fn get_ram_size_bytes(&self) -> usize {
-        (self.get_ram_banks() as usize) * 8192
+        if self.cart_type == 5 || self.cart_type == 6 {
+            512
+        } else {
+            (self.get_ram_banks() as usize) * 8192
+        }
     }
 
     pub fn get_rom_size_bytes(&self) -> usize {
