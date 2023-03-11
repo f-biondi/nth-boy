@@ -6,13 +6,14 @@ use crate::mmu::address_spaces::Addressable;
 use cpu::Cpu;
 use mmu::Mmu;
 use ppu::Ppu;
+use ppu::LcdBuffer;
 use std::error::Error;
 use std::thread;
 use std::time::{Duration, Instant};
 
 mod cpu;
 pub mod mmu;
-mod ppu;
+pub mod ppu;
 
 const CYCLE_LIMIT: u32 = 70224;
 
@@ -33,7 +34,7 @@ impl Device {
         })
     }
 
-    pub fn frame(&mut self, buffer: &mut Vec<u32>, joypad_state: JoypadState) {
+    pub fn frame(&mut self, buffer: &mut LcdBuffer, joypad_state: JoypadState) {
         let mut total_cycles: u32 = 0;
 
         self.mmu.io.joypad.set_state(joypad_state);
@@ -47,7 +48,9 @@ impl Device {
             //self.mmu.dma_run();
             self.ppu.tick(&mut self.mmu, buffer, cycles);
             self.update_timers(cycles);
-            total_cycles += cycles as u32;
+            for i in 0..cycles {
+                total_cycles += 1;
+            }
         }
     }
 

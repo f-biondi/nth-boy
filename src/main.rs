@@ -1,5 +1,6 @@
 use gbcore::mmu::address_spaces::io::joypad::JoypadState;
 use gbcore::Device;
+use gbcore::ppu::LcdBuffer;
 use minifb::{Key, Scale, ScaleMode, Window, WindowOptions};
 use std::env;
 use std::error::Error;
@@ -24,12 +25,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     window.limit_update_rate(Some(std::time::Duration::from_micros(16742)));
 
-    let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
+    let empty_buffer: Vec<u32> = vec![0xffffff; WIDTH * HEIGHT];
+
+    let mut lcd_buffer: LcdBuffer = LcdBuffer{
+        buffer: vec![0; WIDTH * HEIGHT],
+        cleared: false,
+    };
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let pressed_keys: Vec<Key> = window.get_keys();
         emulator.frame(
-            &mut buffer,
+            &mut lcd_buffer,
             JoypadState {
                 up: pressed_keys.contains(&Key::W),
                 down: pressed_keys.contains(&Key::S),
@@ -42,7 +48,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             },
         );
 
-        window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
+        if !lcd_buffer.cleared {
+            window.update_with_buffer(&lcd_buffer.buffer, WIDTH, HEIGHT).unwrap();
+        } else {
+            window.update_with_buffer(&empty_buffer, WIDTH, HEIGHT).unwrap();
+            lcd_buffer.cleared = false;
+        }
     }
     emulator.save()?;
     Ok(())

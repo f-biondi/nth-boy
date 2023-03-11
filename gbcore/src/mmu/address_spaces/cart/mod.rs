@@ -1,9 +1,11 @@
 use crate::mmu::address_spaces::adressable_memory::AdressableMemory;
 use crate::mmu::address_spaces::cart::header::Header;
 use crate::mmu::address_spaces::cart::mbc::Mbc;
+use crate::mmu::address_spaces::cart::mbc::Rtc;
 use crate::mmu::address_spaces::cart::mbc::ReadResult;
 use crate::mmu::address_spaces::cart::mbc::WriteResult;
 use crate::mmu::address_spaces::Addressable;
+use std::time::Duration;
 
 use std::error::Error;
 use std::fs;
@@ -29,6 +31,7 @@ impl Cart {
             0x0 => Ok(Mbc::NoMbc),
             0x1 | 0x2 | 0x3 => Ok(Mbc::Mbc1(false, 1, 0, false)),
             0x5 | 0x6 => Ok(Mbc::Mbc2(false, 1)),
+            0x0F..=0x13 => Ok(Mbc::Mbc3(false, 1, 0, Rtc::new())),
             _ => Err(String::from(format!(
                 "Unsopported mbc {:#02X}",
                 header.cart_type
@@ -51,7 +54,7 @@ impl Cart {
             }
         }
         Ok(Self {
-            path: String::from("path"),
+            path: String::from(path),
             save_path: save_path,
             mbc: Cart::get_mbc(&header)?,
             rom: file,

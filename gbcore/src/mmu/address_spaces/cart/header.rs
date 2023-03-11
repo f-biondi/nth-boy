@@ -2,6 +2,7 @@ use std::error::Error;
 
 //TODO add MBC5
 const CART_TYPE_BATTERY: &'static [u8] = &[0x03, 0x06, 0x0F, 0x10, 0x13];
+const CART_TYPE_RTC: &'static [u8] = &[0x0F, 0x10];
 
 pub struct Header {
     pub title: String,
@@ -59,6 +60,10 @@ impl Header {
 
     pub fn has_battery(&self) -> bool {
         CART_TYPE_BATTERY.contains(&self.cart_type)
+    }
+
+    pub fn has_rtc(&self) -> bool {
+        CART_TYPE_RTC.contains(&self.cart_type)
     }
 
     pub fn get_ram_size_bytes(&self) -> usize {

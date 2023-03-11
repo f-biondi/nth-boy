@@ -10,6 +10,11 @@ use std::collections::VecDeque;
 
 mod pixel_fetcher;
 
+pub struct LcdBuffer {
+    pub buffer: Vec<u32>,
+    pub cleared: bool
+}
+
 #[derive(PartialEq, Debug)]
 enum PpuState {
     OAM_SEARCH,
@@ -68,9 +73,11 @@ impl Ppu {
         self.old_stat = stat;
     }
 
-    pub fn tick(&mut self, mmu: &mut Mmu, buffer: &mut Vec<u32>, new_ticks: u8) {
+    pub fn tick(&mut self, mmu: &mut Mmu, lcd_buffer: &mut LcdBuffer, new_ticks: u8) {
         if !mmu.io.lcd.is_display_enabled() {
             self.needs_reset = true;
+            lcd_buffer.cleared = true;
+            return;
         } else if self.needs_reset {
             self.reset(mmu);
         }
@@ -82,7 +89,7 @@ impl Ppu {
             ticks_todo -= 1;
             match &self.state {
                 PpuState::OAM_SEARCH => self.oam_search(mmu),
-                PpuState::PIXEL_TRANSFER => self.pixel_transfer(mmu, buffer),
+                PpuState::PIXEL_TRANSFER => self.pixel_transfer(mmu, &mut lcd_buffer.buffer),
                 PpuState::H_BLANK => self.h_blank(mmu),
                 PpuState::V_BLANK => self.v_blank(mmu),
                 PpuState::QUIRK => self.quirk(mmu),
