@@ -2,13 +2,11 @@
 #![allow(unused_variables)]
 
 use crate::mmu::address_spaces::io::joypad::JoypadState;
-use crate::mmu::address_spaces::Addressable;
 use cpu::Cpu;
 use mmu::Mmu;
 use ppu::Ppu;
 use ppu::LcdBuffer;
 use std::error::Error;
-use std::thread;
 use std::time::{Duration, Instant};
 
 mod cpu;

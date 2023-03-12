@@ -1,6 +1,5 @@
 use crate::mmu::{address_spaces::Addressable, Mmu};
 use registers::{Flag, Register16, Register8, Registers};
-use std::error::Error;
 
 mod registers;
 

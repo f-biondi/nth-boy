@@ -99,7 +99,6 @@ impl BgFetcher {
         let base_address: u16 = if mmu.io.lcd.get_tile_data() == 0x8000 {
             0x8000u16.wrapping_add(self.tile_no as u16 * 16)
         } else {
-            //TODO: due diligence on types
             0x9000u16.wrapping_add(((self.tile_no as i8) as u16).wrapping_mul(16))
         };
 
@@ -112,7 +111,6 @@ impl BgFetcher {
         self.change_state(FetchState::FETCH_DATA_HIGH);
     }
 
-    //TODO: needs delay?
     fn fetch_data_high(&mut self, mmu: &Mmu, window_line_counter: u8) {
         self.data_high = mmu.read(self.data_start_add + 1);
         self.change_state(FetchState::PUSH);

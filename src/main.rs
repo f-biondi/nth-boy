@@ -10,15 +10,14 @@ const HEIGHT: usize = 144;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
-    //let mut emulator = Device::new(&args[1])?;
-    let mut emulator = Device::new("/home/fbiondi/nth-boy/roms/gold.gb")?;
+    let mut emulator = Device::new(&args[1])?;
 
     let mut window = Window::new(
         "nth-boy",
         WIDTH,
         HEIGHT,
         WindowOptions {
-            scale: Scale::X4,
+            scale: Scale::X8,
             ..WindowOptions::default()
         },
     )
