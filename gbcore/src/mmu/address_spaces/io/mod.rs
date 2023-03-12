@@ -17,7 +17,6 @@ pub struct Io {
     pub lcd: Lcd,
     i3: AdressableMemory,
     pub if_flag: u8,
-    pub test: String,
 }
 
 impl Io {
@@ -32,14 +31,7 @@ impl Io {
             lcd: Lcd::new(),
             i3: AdressableMemory::new(0xFF4C, 0xFF7F)?,
             if_flag: 0xE1,
-            test: String::from(""),
         })
-    }
-
-    pub fn get_test(&mut self) -> String {
-        let res: String = self.test.clone();
-        self.test = String::from("");
-        res
     }
 
     pub fn request_vblank_interrupt(&mut self) {
@@ -88,8 +80,8 @@ impl Addressable for Io {
         match location {
             0xFF00 => self.joypad.write(location, byte),
             0xFF01..=0xFF02 => {
+                //TODO serial implementation
                 if location == 0xFF02 && byte == 0x81 {
-                    let mut sc: u8 = byte;
                     self.i1.write(0xff02, 0x01);
                     self.i1.write(0xff01, 0x00);
                     self.request_serial_interrupt();

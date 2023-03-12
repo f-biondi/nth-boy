@@ -29,10 +29,9 @@ impl Mbc {
     pub fn read(&self, header: &Header, add: u16) -> ReadResult {
         match self {
             Mbc::NoMbc => ReadResult::Rom(add as usize),
-            Mbc::Mbc1(_, _, _, _) => self.mbc1_read(header, add),
+            Mbc::Mbc1(_, _, _, _) => self.mbc1_read(add),
             Mbc::Mbc2(_, _) => self.mbc2_read(add),
             Mbc::Mbc3(_, _, _) => self.mbc3_read(add),
-            _ => ReadResult::NoOp,
         }
     }
 
@@ -42,11 +41,10 @@ impl Mbc {
             Mbc::Mbc1(_, _, _, _) => self.mbc1_write(header, add, byte),
             Mbc::Mbc2(_, _) => self.mbc2_write(add, byte),
             Mbc::Mbc3(_, _, _) => self.mbc3_write(add, byte),
-            _ => WriteResult::NoOp,
         }
     }
 
-    fn mbc1_read(&self, header: &Header, add: u16) -> ReadResult {
+    fn mbc1_read(&self, add: u16) -> ReadResult {
         if let Mbc::Mbc1(ram_enabled, s1, s2, mode) = self {
             match add {
                 0x0000..=0x3FFF => ReadResult::Rom(add as usize),
@@ -56,9 +54,9 @@ impl Mbc {
                 0xA000..=0xBFFF => {
                     if *ram_enabled {
                         match *mode {
-                            true => {
-                                ReadResult::Ram(RAM_BANK_SIZE * (*s2 as usize) + ((add - 0xA000) as usize))
-                            }
+                            true => ReadResult::Ram(
+                                RAM_BANK_SIZE * (*s2 as usize) + ((add - 0xA000) as usize),
+                            ),
                             false => ReadResult::Ram((add - 0xA000) as usize),
                         }
                     } else {
@@ -97,12 +95,12 @@ impl Mbc {
                             (0 | 1, _) => WriteResult::Ram(
                                 ((add - 0xA000) as usize) % header.get_ram_size_bytes(),
                                 byte,
-                                ),
-                                (_, true) => WriteResult::Ram(
-                                    RAM_BANK_SIZE * (*s2 as usize) + ((add - 0xA000) as usize),
-                                    byte,
-                                    ),
-                                    (_, false) => WriteResult::Ram((add - 0xA000) as usize, byte),
+                            ),
+                            (_, true) => WriteResult::Ram(
+                                RAM_BANK_SIZE * (*s2 as usize) + ((add - 0xA000) as usize),
+                                byte,
+                            ),
+                            (_, false) => WriteResult::Ram((add - 0xA000) as usize, byte),
                         }
                     } else {
                         WriteResult::NoOp
@@ -146,7 +144,7 @@ impl Mbc {
                         *ram_enabled = (byte & 0x0F) == 0xA;
                     }
                     WriteResult::NoOp
-                },
+                }
                 0xA000..=0xBFFF => {
                     if *ram_enabled {
                         WriteResult::Ram((add & 0x1FF) as usize, 0xF0 | (byte & 0x0F))
@@ -167,13 +165,13 @@ impl Mbc {
                 0x0000..=0x3FFF => ReadResult::Rom(add as usize),
                 0x4000..=0x7FFF => {
                     ReadResult::Rom(ROM_BANK_SIZE * (*s1 as usize) + ((add - 0x4000) as usize))
-                },
-                0xA000..=0xBFFF => {
-                    match (*s2, *ram_enabled) {
-                        (0x0..=0x03, true) => ReadResult::Ram(RAM_BANK_SIZE * (*s2 as usize) + ((add - 0xA000) as usize)),
-                        (0x8..=0x0C, _) => ReadResult::Rtc(*s2),
-                        _ => ReadResult::Mbc(0xFF),
+                }
+                0xA000..=0xBFFF => match (*s2, *ram_enabled) {
+                    (0x0..=0x03, true) => {
+                        ReadResult::Ram(RAM_BANK_SIZE * (*s2 as usize) + ((add - 0xA000) as usize))
                     }
+                    (0x8..=0x0C, _) => ReadResult::Rtc(*s2),
+                    _ => ReadResult::Mbc(0xFF),
                 },
                 _ => ReadResult::NoOp,
             }
@@ -199,12 +197,15 @@ impl Mbc {
                 0x4000..=0x5FFF => {
                     *s2 = byte % 0x0C;
                     WriteResult::NoOp
-                },
+                }
                 0x6000..=0x7FFF => WriteResult::Rtc(0x0D, byte),
                 0xA000..=0xBFFF => match (*s2, *ram_enabled) {
-                    (0x0..=0x03, true) => WriteResult::Ram(RAM_BANK_SIZE * (*s2 as usize) + ((add - 0xA000) as usize), byte),
+                    (0x0..=0x03, true) => WriteResult::Ram(
+                        RAM_BANK_SIZE * (*s2 as usize) + ((add - 0xA000) as usize),
+                        byte,
+                    ),
                     (0x8..=0x0C, true) => WriteResult::Rtc(*s2, byte),
-                    _ => WriteResult::NoOp
+                    _ => WriteResult::NoOp,
                 },
                 _ => WriteResult::NoOp,
             }

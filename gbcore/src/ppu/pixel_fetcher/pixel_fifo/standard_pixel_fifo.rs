@@ -1,5 +1,4 @@
 use crate::ppu::pixel_fetcher::pixel_fifo::PixelFifo;
-use crate::ppu::pixel_fetcher::Palette;
 use crate::ppu::pixel_fetcher::Pixel;
 
 pub struct StandardPixelFifo {

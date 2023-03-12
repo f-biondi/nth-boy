@@ -1,7 +1,7 @@
 use gbcore::mmu::address_spaces::io::joypad::JoypadState;
-use gbcore::Device;
 use gbcore::ppu::LcdBuffer;
-use minifb::{Key, Scale, ScaleMode, Window, WindowOptions};
+use gbcore::Device;
+use minifb::{Key, Scale, Window, WindowOptions};
 use std::env;
 use std::error::Error;
 
@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let empty_buffer: Vec<u32> = vec![0xffffff; WIDTH * HEIGHT];
 
-    let mut lcd_buffer: LcdBuffer = LcdBuffer{
+    let mut lcd_buffer: LcdBuffer = LcdBuffer {
         buffer: vec![0; WIDTH * HEIGHT],
         cleared: false,
     };
@@ -49,9 +49,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
 
         if !lcd_buffer.cleared {
-            window.update_with_buffer(&lcd_buffer.buffer, WIDTH, HEIGHT).unwrap();
+            window
+                .update_with_buffer(&lcd_buffer.buffer, WIDTH, HEIGHT)
+                .unwrap();
         } else {
-            window.update_with_buffer(&empty_buffer, WIDTH, HEIGHT).unwrap();
+            window
+                .update_with_buffer(&empty_buffer, WIDTH, HEIGHT)
+                .unwrap();
             lcd_buffer.cleared = false;
         }
     }

@@ -1,14 +1,12 @@
 use crate::mmu::address_spaces::cart::header::Header;
 use crate::mmu::address_spaces::cart::mbc::Mbc;
-use crate::mmu::address_spaces::cart::rtc::Rtc;
 use crate::mmu::address_spaces::cart::mbc::ReadResult;
 use crate::mmu::address_spaces::cart::mbc::WriteResult;
+use crate::mmu::address_spaces::cart::rtc::Rtc;
 use crate::mmu::address_spaces::Addressable;
 
 use std::error::Error;
 use std::fs;
-use std::fs::File;
-use std::os::unix::prelude::FileExt;
 use std::str;
 
 mod header;
@@ -30,9 +28,7 @@ impl Cart {
             0x0 => Ok(Mbc::NoMbc),
             0x1 | 0x2 | 0x3 => Ok(Mbc::Mbc1(false, 1, 0, false)),
             0x5 | 0x6 => Ok(Mbc::Mbc2(false, 1)),
-            0x0F..=0x13 => {
-                Ok(Mbc::Mbc3(false, 1, 0)) 
-            },
+            0x0F..=0x13 => Ok(Mbc::Mbc3(false, 1, 0)),
             _ => Err(String::from(format!(
                 "Unsopported mbc {:#02X}",
                 header.cart_type
@@ -88,12 +84,16 @@ impl Cart {
 impl Addressable for Cart {
     fn write(&mut self, location: u16, byte: u8) {
         match self.mbc.write(&self.header, location, byte) {
-            WriteResult::Ram(location, byte_res) => if self.ram.len() > 0 {
-                self.ram[location] = byte_res;
-            },
-            WriteResult::Rtc(location, value) => if let Some(rtc) = &mut self.rtc {
-                rtc.write(location, value);
-            },
+            WriteResult::Ram(location, byte_res) => {
+                if self.ram.len() > 0 {
+                    self.ram[location] = byte_res;
+                }
+            }
+            WriteResult::Rtc(location, value) => {
+                if let Some(rtc) = &mut self.rtc {
+                    rtc.write(location, value);
+                }
+            }
             _ => {}
         }
     }
@@ -101,11 +101,13 @@ impl Addressable for Cart {
         match self.mbc.read(&self.header, location) {
             ReadResult::Rom(location) => self.rom[location],
             ReadResult::Ram(location) => self.ram[location],
-            ReadResult::Rtc(location) => if let Some(rtc) = &self.rtc {
-                rtc.read(location)
-            } else {
-                0x0
-            },
+            ReadResult::Rtc(location) => {
+                if let Some(rtc) = &self.rtc {
+                    rtc.read(location)
+                } else {
+                    0x0
+                }
+            }
             ReadResult::Mbc(value) => value,
             _ => 0x0,
         }

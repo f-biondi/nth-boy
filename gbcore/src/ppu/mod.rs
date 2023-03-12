@@ -1,27 +1,25 @@
 use crate::mmu::address_spaces::oam::Sprite;
-use crate::mmu::address_spaces::Addressable;
 use crate::ppu::pixel_fetcher::Pixel;
 use crate::ppu::pixel_fetcher::Pixelfetcher;
 use crate::Mmu;
 use pixel_fetcher::bg_fetcher::BgFetcher;
 use pixel_fetcher::sprite_fetcher::SpriteFetcher;
 use pixel_fetcher::Palette;
-use std::collections::VecDeque;
 
 mod pixel_fetcher;
 
 pub struct LcdBuffer {
     pub buffer: Vec<u32>,
-    pub cleared: bool
+    pub cleared: bool,
 }
 
 #[derive(PartialEq, Debug)]
 enum PpuState {
-    OAM_SEARCH,
-    PIXEL_TRANSFER,
-    H_BLANK,
-    V_BLANK,
-    QUIRK,
+    OamSearch,
+    PixelTransfer,
+    HBlank,
+    Vblank,
+    Quirk,
 }
 
 pub struct Ppu {
@@ -45,7 +43,7 @@ const PALETTE: &'static [u32] = &[0xffffff, 0xaaaaaa, 0x555555, 0x000000];
 impl Ppu {
     pub fn new() -> Ppu {
         Self {
-            state: PpuState::OAM_SEARCH,
+            state: PpuState::OamSearch,
             sprites: Vec::new(),
             current_sprite: None,
             wy_equal_ly: false,
@@ -62,11 +60,11 @@ impl Ppu {
     }
 
     fn handle_stat(&mut self, mmu: &mut Mmu) {
-        let stat: bool = ((mmu.io.lcd.ly_equal_lyc_stat_enabled()
+        let stat: bool = (mmu.io.lcd.ly_equal_lyc_stat_enabled()
             && mmu.io.lcd.get_ly() == mmu.io.lcd.get_lyc())
-            || (mmu.io.lcd.oam_stat_enabled() && &self.state == &PpuState::OAM_SEARCH)
-            || (mmu.io.lcd.vblank_stat_enabled() && &self.state == &PpuState::V_BLANK)
-            || (mmu.io.lcd.hblank_stat_enabled() && &self.state == &PpuState::H_BLANK));
+            || (mmu.io.lcd.oam_stat_enabled() && &self.state == &PpuState::OamSearch)
+            || (mmu.io.lcd.vblank_stat_enabled() && &self.state == &PpuState::Vblank)
+            || (mmu.io.lcd.hblank_stat_enabled() && &self.state == &PpuState::HBlank);
         if stat && !self.old_stat {
             mmu.io.request_lcd_stat_interrupt();
         }
@@ -88,11 +86,11 @@ impl Ppu {
             self.handle_stat(mmu);
             ticks_todo -= 1;
             match &self.state {
-                PpuState::OAM_SEARCH => self.oam_search(mmu),
-                PpuState::PIXEL_TRANSFER => self.pixel_transfer(mmu, &mut lcd_buffer.buffer),
-                PpuState::H_BLANK => self.h_blank(mmu),
-                PpuState::V_BLANK => self.v_blank(mmu),
-                PpuState::QUIRK => self.quirk(mmu),
+                PpuState::OamSearch => self.oam_search(mmu),
+                PpuState::PixelTransfer => self.pixel_transfer(mmu, &mut lcd_buffer.buffer),
+                PpuState::HBlank => self.h_blank(mmu),
+                PpuState::Vblank => self.v_blank(mmu),
+                PpuState::Quirk => self.quirk(mmu),
             }
             self.ticks += 1;
         }
@@ -118,7 +116,7 @@ impl Ppu {
         }
 
         if self.ticks == 80 {
-            self.change_state(mmu, PpuState::PIXEL_TRANSFER, true);
+            self.change_state(mmu, PpuState::PixelTransfer, true);
 
             if mmu.io.lcd.get_ly() == mmu.io.lcd.wy {
                 self.wy_equal_ly = true;
@@ -186,7 +184,7 @@ impl Ppu {
 
         if self.x_position == 160 {
             self.handle_scanline_end();
-            self.change_state(mmu, PpuState::H_BLANK, false);
+            self.change_state(mmu, PpuState::HBlank, false);
         }
     }
 
@@ -226,12 +224,11 @@ impl Ppu {
 
     fn h_blank(&mut self, mmu: &mut Mmu) {
         if self.ticks == 456 {
-            let mut new_state: PpuState;
-            if mmu.io.lcd.get_ly() < 143 {
-                new_state = PpuState::OAM_SEARCH
+            let new_state: PpuState = if mmu.io.lcd.get_ly() < 143 {
+                PpuState::OamSearch
             } else {
-                new_state = PpuState::V_BLANK
-            }
+                PpuState::Vblank
+            };
             mmu.io.lcd.inc_ly(1);
             self.change_state(mmu, new_state, true);
         }
@@ -247,7 +244,7 @@ impl Ppu {
         }
 
         if mmu.io.lcd.get_ly() == 153 {
-            self.change_state(mmu, PpuState::QUIRK, true);
+            self.change_state(mmu, PpuState::Quirk, true);
         }
     }
 
@@ -263,13 +260,13 @@ impl Ppu {
             self.ticks = 0;
         }
         match &self.state {
-            PpuState::OAM_SEARCH => {
+            PpuState::OamSearch => {
                 self.line_reset();
                 mmu.io.lcd.set_oam_ppu_mode()
             }
-            PpuState::PIXEL_TRANSFER => mmu.io.lcd.set_draw_ppu_mode(),
-            PpuState::H_BLANK => mmu.io.lcd.set_hblank_ppu_mode(),
-            PpuState::V_BLANK => mmu.io.lcd.set_vblank_ppu_mode(),
+            PpuState::PixelTransfer => mmu.io.lcd.set_draw_ppu_mode(),
+            PpuState::HBlank => mmu.io.lcd.set_hblank_ppu_mode(),
+            PpuState::Vblank => mmu.io.lcd.set_vblank_ppu_mode(),
             _ => {}
         }
     }
@@ -285,7 +282,7 @@ impl Ppu {
     }
 
     fn reset(&mut self, mmu: &mut Mmu) {
-        self.change_state(mmu, PpuState::OAM_SEARCH, true);
+        self.change_state(mmu, PpuState::OamSearch, true);
         self.line_reset();
         self.wy_equal_ly = false;
         mmu.io.lcd.set_ly(0);

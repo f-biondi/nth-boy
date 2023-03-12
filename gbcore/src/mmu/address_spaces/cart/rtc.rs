@@ -2,12 +2,12 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub struct Rtc {
     s: u8,
-    m: u8, 
+    m: u8,
     h: u8,
     dl: u16,
 
     latched_s: u8,
-    latched_m: u8, 
+    latched_m: u8,
     latched_h: u8,
     latched_dl: u8,
     latched_dh: u8,
@@ -20,15 +20,14 @@ pub struct Rtc {
 }
 
 impl Rtc {
-
     pub fn new() -> Rtc {
         Rtc {
             s: 0,
-            m: 0, 
+            m: 0,
             h: 0,
             dl: 0,
             latched_s: 0,
-            latched_m: 0, 
+            latched_m: 0,
             latched_h: 0,
             latched_dl: 0,
             latched_dh: 0,
@@ -42,7 +41,10 @@ impl Rtc {
     pub fn update_timer(&mut self) {
         if !self.timer_halt {
             let now: SystemTime = SystemTime::now();
-            let elapsed: u64  = now.duration_since(self.last_update).expect("Time went backwards").as_secs();
+            let elapsed: u64 = now
+                .duration_since(self.last_update)
+                .expect("Time went backwards")
+                .as_secs();
             if elapsed > 0 {
                 self.inc_s(elapsed);
                 self.last_update = now;
@@ -69,7 +71,7 @@ impl Rtc {
     }
 
     fn inc_d(&mut self, inc: u64) {
-        self.dl += (inc as u16);
+        self.dl += inc as u16;
         if self.dl > 0x1FF {
             self.dl %= 0x1FF;
             self.day_carry = true;
@@ -88,20 +90,12 @@ impl Rtc {
     pub fn latch_registers(&mut self) {
         self.update_timer();
         self.latched_s = 0b11000000 | self.s;
-        self.latched_m = 0b11000000 | self.m; 
+        self.latched_m = 0b11000000 | self.m;
         self.latched_h = 0b11100000 | self.h;
         self.latched_dl = (self.dl & 0xFF) as u8;
         self.latched_dh = ((self.dl & 0x100) >> 8) as u8;
-        self.latched_dh |= if self.timer_halt {
-            1 << 6
-        } else {
-            0
-        };
-        self.latched_dh |= if self.day_carry {
-            1 << 7
-        } else {
-            0
-        };
+        self.latched_dh |= if self.timer_halt { 1 << 6 } else { 0 };
+        self.latched_dh |= if self.day_carry { 1 << 7 } else { 0 };
     }
 
     pub fn read(&self, add: u8) -> u8 {
@@ -123,7 +117,7 @@ impl Rtc {
             0x0B => self.write_dl(value),
             0x0C => self.write_dh(value),
             0x0D => self.update_latch_state(value),
-            _ => {},
+            _ => {}
         }
     }
 
@@ -138,7 +132,7 @@ impl Rtc {
         self.update_timer();
         let new: u8 = value & 0b00111111;
         self.m = new;
-        self.latched_m = 0b11000000 | self.m; 
+        self.latched_m = 0b11000000 | self.m;
     }
 
     fn write_h(&mut self, value: u8) {
@@ -150,7 +144,7 @@ impl Rtc {
 
     fn write_dl(&mut self, value: u8) {
         self.update_timer();
-        self.dl = (value as u16);
+        self.dl = value as u16;
         self.latched_dl = value;
     }
 
@@ -168,22 +162,22 @@ impl Rtc {
 
     pub fn deserialize(data: &Vec<u8>) -> Rtc {
         let dl: u16 = ((data[4] as u16) << 8) | (data[3] as u16);
-        let unix_elapsed: u64 = ((data[17] as u64) << 56) |
-                                ((data[16] as u64) << 48) |
-                                ((data[15] as u64) << 40) |
-                                ((data[14] as u64) << 32) |
-                                ((data[13] as u64) << 24) |
-                                ((data[12] as u64) << 16) |
-                                ((data[11] as u64) << 8) |
-                                data[10] as u64;
+        let unix_elapsed: u64 = ((data[17] as u64) << 56)
+            | ((data[16] as u64) << 48)
+            | ((data[15] as u64) << 40)
+            | ((data[14] as u64) << 32)
+            | ((data[13] as u64) << 24)
+            | ((data[12] as u64) << 16)
+            | ((data[11] as u64) << 8)
+            | data[10] as u64;
         let last_update: SystemTime = UNIX_EPOCH + Duration::from_secs(unix_elapsed);
         let timer_halt: bool = data[18] == 1;
         let day_carry: bool = data[19] == 1;
         let latch_state: bool = data[20] == 1;
 
         Rtc {
-            s: data[0], 
-            m: data[1], 
+            s: data[0],
+            m: data[1],
             h: data[2],
             dl: dl,
 
@@ -200,20 +194,24 @@ impl Rtc {
     }
 
     pub fn serialize(&self) -> Vec<u8> {
-        let mut data: Vec<u8> = vec![0;21];
-        data[0] = self.s; 
-        data[1] = self.m; 
+        let mut data: Vec<u8> = vec![0; 21];
+        data[0] = self.s;
+        data[1] = self.m;
         data[2] = self.h;
         data[3] = (self.dl & 0x00FF) as u8;
         data[4] = ((self.dl & 0xFF00) >> 8) as u8;
 
         data[5] = self.latched_s;
-        data[6] = self.latched_m; 
+        data[6] = self.latched_m;
         data[7] = self.latched_h;
         data[8] = self.latched_dl;
         data[9] = self.latched_dh;
 
-        let unix_elapsed: u64 = self.last_update.duration_since(UNIX_EPOCH).expect("Time went backwards").as_secs();
+        let unix_elapsed: u64 = self
+            .last_update
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_secs();
         data[10] = (unix_elapsed & 0x00000000000000FF) as u8;
         data[11] = ((unix_elapsed & 0x000000000000FF00) >> 8) as u8;
         data[12] = ((unix_elapsed & 0x0000000000FF0000) >> 16) as u8;
@@ -222,26 +220,13 @@ impl Rtc {
         data[15] = ((unix_elapsed & 0x0000FF0000000000) >> 40) as u8;
         data[16] = ((unix_elapsed & 0x00FF000000000000) >> 48) as u8;
         data[17] = ((unix_elapsed & 0xFF00000000000000) >> 56) as u8;
-        
-        data[18] = if self.timer_halt {
-            0x1
-        } else {
-            0x0
-        };
 
-        data[19] = if self.day_carry {
-            0x1
-        } else {
-            0x0
-        };
+        data[18] = if self.timer_halt { 0x1 } else { 0x0 };
 
-        data[20] = if self.latch_state {
-            0x1
-        } else {
-            0x0
-        };
+        data[19] = if self.day_carry { 0x1 } else { 0x0 };
+
+        data[20] = if self.latch_state { 0x1 } else { 0x0 };
 
         data
     }
-
 }

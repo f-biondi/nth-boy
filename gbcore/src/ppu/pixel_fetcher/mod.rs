@@ -4,10 +4,10 @@ pub mod sprite_fetcher;
 
 #[derive(PartialEq)]
 pub enum FetchState {
-    FETCH_NO,
-    FETCH_DATA_LOW,
-    FETCH_DATA_HIGH,
-    PUSH,
+    FetchNo,
+    FetchDataLow,
+    FetchDataHigh,
+    Push,
 }
 
 #[derive(Copy, Clone, Debug)]

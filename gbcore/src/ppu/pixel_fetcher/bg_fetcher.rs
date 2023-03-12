@@ -6,7 +6,6 @@ use crate::ppu::pixel_fetcher::Palette;
 use crate::ppu::pixel_fetcher::Pixel;
 use crate::ppu::pixel_fetcher::Pixelfetcher;
 use crate::Mmu;
-use std::collections::VecDeque;
 
 pub struct BgFetcher {
     fifo: StandardPixelFifo,
@@ -30,7 +29,7 @@ impl BgFetcher {
     pub fn new() -> BgFetcher {
         BgFetcher {
             fifo: StandardPixelFifo::with_capacity(8),
-            state: FetchState::FETCH_NO,
+            state: FetchState::FetchNo,
             tile_no: 0,
             data_start_add: 0,
             data_low: 0,
@@ -44,10 +43,10 @@ impl BgFetcher {
     pub fn tick(&mut self, mmu: &mut Mmu, window_line_counter: u8) {
         if self.ready {
             match &self.state {
-                FetchState::FETCH_NO => self.fetch_no(mmu, window_line_counter),
-                FetchState::FETCH_DATA_LOW => self.fetch_data_low(mmu, window_line_counter),
-                FetchState::FETCH_DATA_HIGH => self.fetch_data_high(mmu, window_line_counter),
-                FetchState::PUSH => self.push(),
+                FetchState::FetchNo => self.fetch_no(mmu, window_line_counter),
+                FetchState::FetchDataLow => self.fetch_data_low(mmu, window_line_counter),
+                FetchState::FetchDataHigh => self.fetch_data_high(mmu),
+                FetchState::Push => self.push(),
             }
         }
         self.ready = true;
@@ -84,7 +83,7 @@ impl BgFetcher {
         };
 
         self.tile_no = mmu.read(tile_no_add);
-        self.change_state(FetchState::FETCH_DATA_LOW);
+        self.change_state(FetchState::FetchDataLow);
     }
 
     fn get_tile_data_start_address(&mut self, mmu: &Mmu, window_line_counter: u8) -> u16 {
@@ -108,12 +107,12 @@ impl BgFetcher {
     fn fetch_data_low(&mut self, mmu: &Mmu, window_line_counter: u8) {
         self.data_start_add = self.get_tile_data_start_address(mmu, window_line_counter);
         self.data_low = mmu.read(self.data_start_add);
-        self.change_state(FetchState::FETCH_DATA_HIGH);
+        self.change_state(FetchState::FetchDataHigh);
     }
 
-    fn fetch_data_high(&mut self, mmu: &Mmu, window_line_counter: u8) {
+    fn fetch_data_high(&mut self, mmu: &Mmu) {
         self.data_high = mmu.read(self.data_start_add + 1);
-        self.change_state(FetchState::PUSH);
+        self.change_state(FetchState::Push);
     }
 
     fn push(&mut self) {
@@ -131,7 +130,7 @@ impl BgFetcher {
                 });
             }
             self.x_counter += 1;
-            self.change_state(FetchState::FETCH_NO);
+            self.change_state(FetchState::FetchNo);
         } else {
             self.ready = false;
         }
@@ -144,7 +143,7 @@ impl BgFetcher {
 
     pub fn reset(&mut self) {
         self.fifo.clear();
-        self.state = FetchState::FETCH_NO;
+        self.state = FetchState::FetchNo;
         self.data_start_add = 0;
         self.tile_no = 0;
         self.data_low = 0;
@@ -155,7 +154,7 @@ impl BgFetcher {
     }
 
     pub fn restart(&mut self) {
-        self.state = FetchState::FETCH_NO;
+        self.state = FetchState::FetchNo;
         self.ready = false;
     }
 }

@@ -1,6 +1,5 @@
 use crate::mmu::address_spaces::Addressable;
 use crate::ppu::pixel_fetcher::pixel_fifo::merge_pixel_fifo::MergePixelFifo;
-use crate::ppu::pixel_fetcher::pixel_fifo::standard_pixel_fifo::StandardPixelFifo;
 use crate::ppu::pixel_fetcher::pixel_fifo::PixelFifo;
 use crate::ppu::pixel_fetcher::FetchState;
 use crate::ppu::pixel_fetcher::Palette;
@@ -8,7 +7,6 @@ use crate::ppu::pixel_fetcher::Pixel;
 use crate::ppu::pixel_fetcher::Pixelfetcher;
 use crate::ppu::Sprite;
 use crate::Mmu;
-use std::collections::VecDeque;
 
 pub struct SpriteFetcher {
     fifo: MergePixelFifo,
@@ -31,7 +29,7 @@ impl SpriteFetcher {
     pub fn new() -> SpriteFetcher {
         SpriteFetcher {
             fifo: MergePixelFifo::with_capacity(8),
-            state: FetchState::FETCH_NO,
+            state: FetchState::FetchNo,
             tile_no: 0,
             data_start_add: 0,
             data_low: 0,
@@ -44,10 +42,10 @@ impl SpriteFetcher {
     pub fn tick(&mut self, mmu: &mut Mmu, sprite: &Sprite) {
         self.done = false;
         match (&self.state, self.ready) {
-            (FetchState::FETCH_NO, true) => self.fetch_no(mmu, sprite),
-            (FetchState::FETCH_DATA_LOW, true) => self.fetch_data_low(mmu, sprite),
-            (FetchState::FETCH_DATA_HIGH, true) => self.fetch_data_high(mmu, sprite),
-            (FetchState::PUSH, _) => {
+            (FetchState::FetchNo, true) => self.fetch_no(mmu, sprite),
+            (FetchState::FetchDataLow, true) => self.fetch_data_low(mmu, sprite),
+            (FetchState::FetchDataHigh, true) => self.fetch_data_high(mmu, sprite),
+            (FetchState::Push, _) => {
                 self.push(sprite);
                 self.done = true;
             }
@@ -71,7 +69,7 @@ impl SpriteFetcher {
         } else {
             sprite.tile_no
         };
-        self.change_state(FetchState::FETCH_DATA_LOW);
+        self.change_state(FetchState::FetchDataLow);
     }
 
     fn get_tile_data_start_address(&mut self, mmu: &Mmu, sprite: &Sprite) -> u16 {
@@ -80,7 +78,7 @@ impl SpriteFetcher {
         } else {
             ((mmu.io.lcd.ly as u16).wrapping_add(mmu.io.lcd.scy as u16)) % 8
         };*/
-        let mut line_index: u16 = if sprite.y_flip {
+        let line_index: u16 = if sprite.y_flip {
             (7u16.wrapping_sub(
                 (mmu.io.lcd.get_ly() as u16)
                     .wrapping_sub(sprite.y_position.wrapping_sub(16) as u16),
@@ -99,12 +97,12 @@ impl SpriteFetcher {
     fn fetch_data_low(&mut self, mmu: &Mmu, sprite: &Sprite) {
         let add: u16 = self.get_tile_data_start_address(mmu, sprite);
         self.data_low = mmu.read(add);
-        self.change_state(FetchState::FETCH_DATA_HIGH);
+        self.change_state(FetchState::FetchDataHigh);
     }
 
     fn fetch_data_high(&mut self, mmu: &Mmu, sprite: &Sprite) {
         self.data_high = mmu.read(self.get_tile_data_start_address(mmu, sprite) + 1);
-        self.change_state(FetchState::PUSH);
+        self.change_state(FetchState::Push);
     }
 
     fn push(&mut self, sprite: &Sprite) {
@@ -145,7 +143,7 @@ impl SpriteFetcher {
                 });
             }
         }
-        self.change_state(FetchState::FETCH_NO);
+        self.change_state(FetchState::FetchNo);
     }
 
     fn change_state(&mut self, state: FetchState) {
@@ -156,7 +154,7 @@ impl SpriteFetcher {
     pub fn reset(&mut self) {
         //self.fifo.clear();
         self.fifo.full_clear();
-        self.state = FetchState::FETCH_NO;
+        self.state = FetchState::FetchNo;
         self.tile_no = 0;
         self.data_start_add = 0;
         self.data_low = 0;

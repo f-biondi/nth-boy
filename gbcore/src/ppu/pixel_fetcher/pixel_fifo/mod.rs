@@ -1,4 +1,3 @@
-use crate::ppu::pixel_fetcher::Palette;
 use crate::ppu::pixel_fetcher::Pixel;
 
 pub mod merge_pixel_fifo;

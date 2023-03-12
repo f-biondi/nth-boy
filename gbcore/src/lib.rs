@@ -1,13 +1,9 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
-
 use crate::mmu::address_spaces::io::joypad::JoypadState;
 use cpu::Cpu;
 use mmu::Mmu;
-use ppu::Ppu;
 use ppu::LcdBuffer;
+use ppu::Ppu;
 use std::error::Error;
-use std::time::{Duration, Instant};
 
 mod cpu;
 pub mod mmu;
@@ -41,14 +37,10 @@ impl Device {
             if self.mmu.io.joypad.purge_interrupt() {
                 self.mmu.io.request_joypad_interrupt();
             }
-            //self.cpu.dump3(&mut self.mmu);
             let cycles: u8 = self.cpu.tick(&mut self.mmu);
-            //self.mmu.dma_run();
             self.ppu.tick(&mut self.mmu, buffer, cycles);
             self.update_timers(cycles);
-            for i in 0..cycles {
-                total_cycles += 1;
-            }
+            total_cycles += cycles as u32;
         }
     }
 
@@ -61,7 +53,7 @@ impl Device {
             self.tima_overflow = false;
         }
 
-        for i in 0..cycles {
+        for _ in 0..cycles {
             self.mmu.io.timers.inc_sysclk();
             let sysclk: u16 = self.mmu.io.timers.get_sysclk();
             if tima_enabled && (sysclk % tima_clock) == 0 {

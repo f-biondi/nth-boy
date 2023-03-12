@@ -33,36 +33,13 @@ impl Mmu {
         })
     }
 
-    /*pub fn dma_tick(&mut self, new_ticks: u8) {
-        let mut remaining_ticks = new_ticks;
-        while self.dma_running() && remaining_ticks > 0 {
-            remaining_ticks -= 1;
-            self.dma_ticks += 1;
-            if (self.dma_ticks % 4) == 0 && self.dma_ticks > 4 {
-                let lsb: u16 = ((self.dma_ticks - 4) / 4) - 1;
-                let source_add: u16 = ((self.dma as u16) << 8) | lsb;
-                let dest_add: u16 = 0xFE00 | lsb;
-                self.dma_current = if self.dma <= 0x7F {
-                    self.cart.read(source_add)
-                } else {
-                    self.wram.read(source_add)
-                };
-                self.oam.write(dest_add, self.dma_current);
-            }
-        }
-    }*/
     pub fn dma_run(&mut self) {
-        let source_msb: u16 = ((self.dma as u16) << 8);
+        let source_msb: u16 = (self.dma as u16) << 8;
         for i in 0x0..=0x9f {
             let source_add: u16 = source_msb | i;
             let dest_add: u16 = 0xFE00 | i;
             self.write(dest_add, self.read(source_add));
         }
-    }
-
-    pub fn test(&mut self) {
-        let res: String = self.io.get_test();
-        print!("{}", res);
     }
 }
 

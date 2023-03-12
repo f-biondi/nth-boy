@@ -47,7 +47,6 @@ impl Oam {
 
 impl Addressable for Oam {
     fn write(&mut self, location: u16, byte: u8) {
-        //println!("cringe {:#04X} {}", location, byte);
         self.mem.write(location, byte);
     }
 
