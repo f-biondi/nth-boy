@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         WIDTH,
         HEIGHT,
         WindowOptions {
-            scale: Scale::X8,
+            scale: Scale::X4,
             ..WindowOptions::default()
         },
     )
