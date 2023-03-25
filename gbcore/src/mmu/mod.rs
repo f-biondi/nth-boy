@@ -20,9 +20,13 @@ pub struct Mmu {
 }
 
 impl Mmu {
-    pub fn from_file(path: &str) -> Result<Mmu, Box<dyn Error>> {
+    pub fn new(
+        rom: Vec<u8>,
+        ram: Option<Vec<u8>>,
+        rtc: Option<Vec<u8>>,
+    ) -> Result<Mmu, Box<dyn Error>> {
         Ok(Self {
-            cart: Cart::from_file(path)?,
+            cart: Cart::new(rom, ram, rtc)?,
             vram: AdressableMemory::new(0x8000, 0x9FFF)?,
             wram: AdressableMemory::new(0xC000, 0xDFFF)?,
             oam: Oam::new()?,

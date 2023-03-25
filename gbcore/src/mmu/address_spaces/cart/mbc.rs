@@ -1,7 +1,6 @@
 use crate::mmu::address_spaces::cart::header::Header;
-
-const ROM_BANK_SIZE: usize = 16384;
-const RAM_BANK_SIZE: usize = 8192;
+use crate::mmu::address_spaces::cart::header::RAM_BANK_SIZE;
+use crate::mmu::address_spaces::cart::header::ROM_BANK_SIZE;
 
 pub enum ReadResult {
     Rom(usize),

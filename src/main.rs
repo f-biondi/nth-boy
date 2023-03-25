@@ -4,20 +4,26 @@ use gbcore::Device;
 use minifb::{Key, Scale, Window, WindowOptions};
 use std::env;
 use std::error::Error;
+use std::fs;
 
 const WIDTH: usize = 160;
 const HEIGHT: usize = 144;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
-    let mut emulator = Device::new(&args[1])?;
+
+    let mut emulator = Device::new(
+        fs::read(&args[1])?,
+        fs::read(format!("{}.{}", &args[1], "sav")).ok(),
+        fs::read(format!("{}.{}", &args[1], "rtc")).ok(),
+    )?;
 
     let mut window = Window::new(
         "nth-boy",
         WIDTH,
         HEIGHT,
         WindowOptions {
-            scale: Scale::X8,
+            scale: Scale::X4,
             ..WindowOptions::default()
         },
     )
@@ -59,6 +65,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             lcd_buffer.cleared = false;
         }
     }
-    emulator.save()?;
+
+    if let Some(save) = emulator.dump_ram() {
+        fs::write(format!("{}.{}", &args[1], "sav"), &save)?;
+    }
+
+    if let Some(rtc) = emulator.dump_rtc() {
+        fs::write(format!("{}.{}", &args[1], "rtc"), &rtc)?;
+    }
+
     Ok(())
 }

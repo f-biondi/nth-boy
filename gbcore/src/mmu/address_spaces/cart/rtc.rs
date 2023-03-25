@@ -1,5 +1,6 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+#[derive(Clone)]
 pub struct Rtc {
     s: u8,
     m: u8,

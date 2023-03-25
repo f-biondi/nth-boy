@@ -3,6 +3,9 @@ use std::error::Error;
 //TODO add MBC5
 const CART_TYPE_BATTERY: &'static [u8] = &[0x03, 0x06, 0x0F, 0x10, 0x13];
 const CART_TYPE_RTC: &'static [u8] = &[0x0F, 0x10];
+pub const ROM_BANK_SIZE: usize = 16384;
+pub const RAM_BANK_SIZE: usize = 8192;
+pub const MBC2_RAM_SIZE: usize = 512;
 
 pub struct Header {
     pub title: String,
@@ -33,18 +36,7 @@ impl Header {
     }
 
     pub fn get_rom_banks(&self) -> u16 {
-        match self.rom_size {
-            0 => 2,
-            1 => 4,
-            2 => 8,
-            3 => 16,
-            4 => 32,
-            6 => 64,
-            7 => 128,
-            8 => 256,
-            5 => 512,
-            _ => 0,
-        }
+        u16::pow(2, (self.rom_size + 1).into())
     }
 
     pub fn get_ram_banks(&self) -> u8 {
@@ -68,14 +60,14 @@ impl Header {
 
     pub fn get_ram_size_bytes(&self) -> usize {
         if self.cart_type == 5 || self.cart_type == 6 {
-            512
+            MBC2_RAM_SIZE
         } else {
-            (self.get_ram_banks() as usize) * 8192
+            (self.get_ram_banks() as usize) * RAM_BANK_SIZE
         }
     }
 
     pub fn get_rom_size_bytes(&self) -> usize {
-        (self.get_rom_banks() as usize) * 16384
+        (self.get_rom_banks() as usize) * ROM_BANK_SIZE
     }
 
     pub fn get_ram_address(&self, add: usize) -> usize {

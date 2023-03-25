@@ -19,11 +19,15 @@ pub struct Device {
 }
 
 impl Device {
-    pub fn new(path: &str) -> Result<Device, Box<dyn Error>> {
+    pub fn new(
+        rom: Vec<u8>,
+        ram: Option<Vec<u8>>,
+        rtc: Option<Vec<u8>>,
+    ) -> Result<Device, Box<dyn Error>> {
         Ok(Self {
             cpu: Cpu::new(),
             ppu: Ppu::new(),
-            mmu: Mmu::from_file(path)?,
+            mmu: Mmu::new(rom, ram, rtc)?,
             tima_overflow: false,
         })
     }
@@ -62,7 +66,11 @@ impl Device {
         }
     }
 
-    pub fn save(&self) -> Result<(), Box<dyn Error>> {
-        self.mmu.cart.save()
+    pub fn dump_ram(&self) -> Option<Vec<u8>> {
+        self.mmu.cart.dump_ram()
+    }
+
+    pub fn dump_rtc(&self) -> Option<Vec<u8>> {
+        self.mmu.cart.dump_rtc()
     }
 }
