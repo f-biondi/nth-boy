@@ -73,4 +73,8 @@ impl Device {
     pub fn dump_rtc(&self) -> Option<Vec<u8>> {
         self.mmu.cart.dump_rtc()
     }
+
+    pub fn update_rtc_now(&mut self, elapsed_secs: u64) {
+        self.mmu.cart.update_rtc_now(elapsed_secs);
+    }
 }

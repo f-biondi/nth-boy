@@ -65,6 +65,12 @@ impl Cart {
         })
     }
 
+    pub fn update_rtc_now(&mut self, elapsed_secs: u64) {
+        if let Some(rtc) = &mut self.rtc {
+            rtc.update_now(elapsed_secs);
+        }
+    }
+
     pub fn dump_ram(&self) -> Option<Vec<u8>> {
         if let Some(ram) = &self.ram {
             Some(ram.clone())

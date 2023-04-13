@@ -75,6 +75,8 @@ impl Ppu {
         if !mmu.io.lcd.is_display_enabled() {
             self.needs_reset = true;
             lcd_buffer.cleared = true;
+            mmu.io.lcd.set_ly(0);
+            mmu.io.lcd.set_hblank_ppu_mode();
             return;
         } else if self.needs_reset {
             self.reset(mmu);

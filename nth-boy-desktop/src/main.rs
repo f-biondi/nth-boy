@@ -5,6 +5,7 @@ use minifb::{Key, Scale, Window, WindowOptions};
 use std::env;
 use std::error::Error;
 use std::fs;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const WIDTH: usize = 160;
 const HEIGHT: usize = 144;
@@ -29,7 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     )
     .expect("Unable to create window");
 
-    window.limit_update_rate(Some(std::time::Duration::from_micros(16742)));
+    window.limit_update_rate(Some(Duration::from_micros(16742)));
 
     let empty_buffer: Vec<u32> = vec![0xffffff; WIDTH * HEIGHT];
 
@@ -40,6 +41,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let pressed_keys: Vec<Key> = window.get_keys();
+        emulator.update_rtc_now(
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("Time went backwards")
+                .as_secs(),
+        );
         emulator.frame(
             &mut lcd_buffer,
             JoypadState {

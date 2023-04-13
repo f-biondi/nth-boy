@@ -14,6 +14,7 @@ pub struct Rtc {
     latched_dh: u8,
 
     last_update: SystemTime,
+    now: SystemTime,
     timer_halt: bool,
     day_carry: bool,
 
@@ -32,7 +33,8 @@ impl Rtc {
             latched_h: 0,
             latched_dl: 0,
             latched_dh: 0,
-            last_update: SystemTime::now(),
+            last_update: UNIX_EPOCH,
+            now: UNIX_EPOCH,
             timer_halt: false,
             day_carry: false,
             latch_state: false,
@@ -41,16 +43,19 @@ impl Rtc {
 
     pub fn update_timer(&mut self) {
         if !self.timer_halt {
-            let now: SystemTime = SystemTime::now();
-            let elapsed: u64 = now
+            let elapsed: u64 = self.now
                 .duration_since(self.last_update)
                 .expect("Time went backwards")
                 .as_secs();
             if elapsed > 0 {
                 self.inc_s(elapsed);
-                self.last_update = now;
+                self.last_update = self.now;
             }
         }
+    }
+
+    pub fn update_now(&mut self, elapsed_secs: u64) {
+        self.now = UNIX_EPOCH + Duration::from_secs(elapsed_secs);
     }
 
     fn inc_s(&mut self, inc: u64) {
@@ -188,6 +193,7 @@ impl Rtc {
             latched_dl: data[8],
             latched_dh: data[9],
             last_update: last_update,
+            now: last_update,
             timer_halt: timer_halt,
             day_carry: day_carry,
             latch_state: latch_state,
