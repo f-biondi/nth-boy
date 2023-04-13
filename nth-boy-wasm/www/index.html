@@ -40,12 +40,19 @@
             justify-content: space-between;
         }
 
+        #logo {
+            background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' standalone='no'%3F%3E%3C!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 20010904//EN' 'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'%3E%3Csvg version='1.0' xmlns='http://www.w3.org/2000/svg' width='120.000000pt' height='120.000000pt' viewBox='0 0 120.000000 120.000000' preserveAspectRatio='xMidYMid meet'%3E%3Cg transform='translate(0.000000,120.000000) scale(0.100000,-0.100000)'%0Afill='%23000000' stroke='none'%3E%3Cpath d='M490 840 l0 -220 110 0 110 0 0 55 0 55 -55 0 -55 0 0 55 0 55 55 0%0A55 0 0 55 0 55 -55 0 -55 0 0 55 0 55 -55 0 -55 0 0 -220z'/%3E%3Cpath d='M820 830 l0 -220 55 0 55 0 0 80 0 80 50 0 50 0 0 -85 0 -85 55 0 55%0A0 0 140 0 140 -105 0 -105 0 0 85 0 85 -55 0 -55 0 0 -220z'/%3E%3Cpath d='M50 795 l0 -165 55 0 55 0 0 110 0 110 55 0 55 0 0 -110 0 -110 55 0%0A55 0 0 110 0 110 -55 0 -55 0 0 55 0 55 -110 0 -110 0 0 -165z'/%3E%3Cpath d='M50 340 l0 -220 165 0 165 0 0 145 0 145 -110 0 -110 0 0 75 0 75%0A-55 0 -55 0 0 -220z m220 -75 l0 -35 -55 0 -55 0 0 35 0 35 55 0 55 0 0 -35z'/%3E%3Cpath d='M450 275 l0 -165 155 0 155 0 0 165 0 165 -155 0 -155 0 0 -165z%0Am200 0 l0 -55 -45 0 -45 0 0 55 0 55 45 0 45 0 0 -55z'/%3E%3Cpath d='M810 330 l0 -110 55 0 55 0 0 -55 0 -55 55 0 55 0 0 55 0 55 55 0 55%0A0 0 110 0 110 -55 0 -55 0 0 -55 0 -55 -55 0 -55 0 0 55 0 55 -55 0 -55 0 0%0A-110z'/%3E%3C/g%3E%3C/svg%3E%0A");
+            background-size: cover;
+            width:120px;
+            height:120px;
+        }
+
     </style>
   </head>
   <body>
       <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
       <div id ="header">
-          <img src="logo.png">
+          <div id="logo"></div>
           <pre id="commands">✚: WASD <br>A: j <br>B: k <br>Start: Enter <br>Select: Backspace</pre>
           <button id="rom-select">🖫 Open Rom</button>
       </div>
