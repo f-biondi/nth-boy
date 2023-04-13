@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>nth-boy</title>
+    <style>
+        body {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #lcd-canvas {
+           border: 2px solid; 
+           border-radius: 3px;
+        }
+        #rom-select {
+            border:1px solid;
+            border-radius: 3px;
+            background:transparent;
+            padding:15px;
+            margin-bottom:20px;
+            cursor:pointer;
+            box-shadow: 6px 6px;
+        }
+
+        #rom-select:active {
+            box-shadow: 3px 3px;
+        }
+
+        #header {
+            width: 640px;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+        }
+
+    </style>
+  </head>
+  <body>
+      <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+      <div id ="header">
+          <img src="logo.png">
+          <pre id="commands">✚: WASD <br>A: j <br>B: k <br>Start: Enter <br>Select: Backspace</pre>
+          <button id="rom-select">🖫 Open Rom</button>
+      </div>
+      <input type='file' id="rom" style="display:none">
+      <canvas id="lcd-canvas"></canvas>
+      <pre id="fps">0 FPS</pre>
+      <script src="./bootstrap.js"></script>
+  </body>
+</html>
