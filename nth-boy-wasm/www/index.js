@@ -1,5 +1,5 @@
 import { Emulator } from "nth-boy-wasm";
-import { memory } from "nth-boy-wasm/nth_boy_wasm_bg";
+import { memory } from "nth-boy-wasm/nth_boy_wasm_bg.wasm";
 
 var emulator = null;
 var rom_name = null;
