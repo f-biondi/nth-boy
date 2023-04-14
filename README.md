@@ -14,12 +14,13 @@ A work in progress Gameboy emulator written in Rust
 
 - [x] CPU
 - [x] GPU
-- [ ] MBC
+- [x] MBC
   - [x] MBC1
   - [x] MBC2
   - [x] MBC3
-  - [ ] MBC5
+  - [x] MBC5
  - [ ] Audio
+ - [ ] GBC support
  
 ## Try it
 

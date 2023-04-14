@@ -1,8 +1,8 @@
 use std::error::Error;
 
-//TODO add MBC5
-const CART_TYPE_BATTERY: &'static [u8] = &[0x03, 0x06, 0x0F, 0x10, 0x13];
+const CART_TYPE_BATTERY: &'static [u8] = &[0x03, 0x06, 0x0F, 0x10, 0x13, 0x1B, 0x1E];
 const CART_TYPE_RTC: &'static [u8] = &[0x0F, 0x10];
+const CART_TYPE_RUMBLE: &'static [u8] = &[0x1C, 0x1D, 0x1E];
 pub const ROM_BANK_SIZE: usize = 16384;
 pub const RAM_BANK_SIZE: usize = 8192;
 pub const MBC2_RAM_SIZE: usize = 512;
@@ -56,6 +56,10 @@ impl Header {
 
     pub fn has_rtc(&self) -> bool {
         CART_TYPE_RTC.contains(&self.cart_type)
+    }
+
+    pub fn has_rumble(&self) -> bool {
+        CART_TYPE_RUMBLE.contains(&self.cart_type)
     }
 
     pub fn get_ram_size_bytes(&self) -> usize {

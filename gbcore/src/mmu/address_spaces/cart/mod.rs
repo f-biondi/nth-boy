@@ -27,6 +27,7 @@ impl Cart {
             0x1 | 0x2 | 0x3 => Ok(Mbc::Mbc1(false, 1, 0, false)),
             0x5 | 0x6 => Ok(Mbc::Mbc2(false, 1)),
             0x0F..=0x13 => Ok(Mbc::Mbc3(false, 1, 0)),
+            0x19..=0x1E => Ok(Mbc::Mbc5(false, 0, 0)),
             _ => Err(String::from(format!(
                 "Unsopported mbc {:#02X}",
                 header.cart_type
