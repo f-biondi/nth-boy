@@ -4,7 +4,7 @@ A work in progress Gameboy emulator written in Rust
 
 <p align="center">
   <img src="readme-images/kirby.png" width="160px" height="144px">
-  <img src="readme-images/pkmngold.png" width="160px" height="144px">
+  <img src="readme-images/mario.png" width="160px" height="144px">
   <img src="readme-images/pkmnred.png" width="160px" height="144px">
   <img src="readme-images/tetris.png" width="160px" height="144px">
   <img src="readme-images/zelda.png" width="160px" height="144px">
