@@ -23,4 +23,4 @@ A work in progress Gameboy emulator written in Rust
  
 ## Try it
 
-Try the [WASM port](https://f-biondi.github.io/nth-boy/) of the emulator directly from your browser of the emulator directly from your browser
+Try the [WASM port](https://f-biondi.github.io/nth-boy/) of the emulator directly from your browser
