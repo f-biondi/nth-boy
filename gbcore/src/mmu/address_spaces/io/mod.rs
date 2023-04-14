@@ -83,7 +83,7 @@ impl Addressable for Io {
                 //TODO serial implementation
                 if location == 0xFF02 && byte == 0x81 {
                     self.i1.write(0xff02, 0x01);
-                    self.i1.write(0xff01, 0x00);
+                    self.i1.write(0xff01, 0xFF);
                     self.request_serial_interrupt();
                 } else {
                     self.i1.write(location, byte);
