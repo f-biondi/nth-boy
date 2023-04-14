@@ -35,6 +35,7 @@ rom.addEventListener("change", (e) => {
         reader.onload = function(){
             let arrayBuffer = reader.result
             let bytes = new Uint8Array(arrayBuffer);
+            saveData();
             emulator = null;
             setTimeout(() => {
                 rom_name = rom.files[0].name;
@@ -53,16 +54,7 @@ rom.addEventListener("change", (e) => {
 });
 
 window.addEventListener("beforeunload", (e) => {
-    if(emulator != null) {
-        let ram = emulator.dump_ram();
-        let rtc = emulator.dump_rtc();
-        if(ram.length > 0) { 
-            localStorage.setItem(rom_name + ".sav", JSON.stringify(Array.from(ram)));
-        }
-        if(rtc.length > 0) { 
-            localStorage.setItem(rom_name + ".rtc", JSON.stringify(Array.from(rtc)));
-        }
-    }
+    saveData();
 });
 
 document.addEventListener("keydown", (e) => {
@@ -122,6 +114,19 @@ document.addEventListener("keyup", (e) => {
         break;
   }
 });
+
+const saveData = () => {
+    if(emulator != null) {
+        let ram = emulator.dump_ram();
+        let rtc = emulator.dump_rtc();
+        if(ram.length > 0) { 
+            localStorage.setItem(rom_name + ".sav", JSON.stringify(Array.from(ram)));
+        }
+        if(rtc.length > 0) { 
+            localStorage.setItem(rom_name + ".rtc", JSON.stringify(Array.from(rtc)));
+        }
+    }
+};
 
 const renderLoop = () => {
   if (emulator != null) {
