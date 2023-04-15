@@ -94,7 +94,7 @@ impl Addressable for Cart {
         match self.mbc.write(&self.header, location, byte) {
             WriteResult::Ram(location, byte_res) => {
                 if let Some(ram) = &mut self.ram {
-                    ram[location] = byte_res;
+                    ram[location % self.header.get_ram_size_bytes()] = byte_res;
                 }
             }
             WriteResult::Rtc(location, value) => {
@@ -110,7 +110,7 @@ impl Addressable for Cart {
             ReadResult::Rom(location) => self.rom[location],
             ReadResult::Ram(location) => {
                 if let Some(ram) = &self.ram {
-                    ram[location]
+                    ram[location % self.header.get_ram_size_bytes()]
                 } else {
                     0x0
                 }

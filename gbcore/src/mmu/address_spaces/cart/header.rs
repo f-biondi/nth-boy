@@ -41,11 +41,11 @@ impl Header {
 
     pub fn get_ram_banks(&self) -> u8 {
         match self.ram_size {
-            0 | 1 => 0,
-            2 => 1,
-            3 => 4,
-            4 => 16,
-            5 => 8,
+            0x0 | 0x01 => 0,
+            0x02 => 1,
+            0x03 => 4,
+            0x04 => 16,
+            0x05 => 8,
             _ => 0,
         }
     }
