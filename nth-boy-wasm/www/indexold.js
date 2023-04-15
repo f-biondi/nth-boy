@@ -146,7 +146,7 @@ const renderLoop = () => {
 
       let duration = performance.now() - startFrame;
 
-      requestAnimationFrame(renderLoop);
+      setTimeout(() => {requestAnimationFrame(renderLoop);}, Math.max(0, 16.472 - duration));
   }
 };
 
