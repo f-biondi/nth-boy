@@ -107,7 +107,7 @@ impl Addressable for Cart {
     }
     fn read(&self, location: u16) -> u8 {
         match self.mbc.read(&self.header, location) {
-            ReadResult::Rom(location) => self.rom[location],
+            ReadResult::Rom(location) => self.rom[location % self.header.get_rom_size_bytes()],
             ReadResult::Ram(location) => {
                 if let Some(ram) = &self.ram {
                     ram[location % self.header.get_ram_size_bytes()]
