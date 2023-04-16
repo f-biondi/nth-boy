@@ -41,6 +41,7 @@ impl SpriteFetcher {
 
     pub fn tick(&mut self, mmu: &mut Mmu, sprite: &Sprite) {
         self.done = false;
+
         match (&self.state, self.ready) {
             (FetchState::FetchNo, true) => self.fetch_no(mmu, sprite),
             (FetchState::FetchDataLow, true) => self.fetch_data_low(mmu, sprite),
@@ -73,11 +74,6 @@ impl SpriteFetcher {
     }
 
     fn get_tile_data_start_address(&mut self, mmu: &Mmu, sprite: &Sprite) -> u16 {
-        /*let line_index: u16 = if sprite.y_flip {
-            7 - (((mmu.io.lcd.ly as u16).wrapping_add(mmu.io.lcd.scy as u16)) % 8)
-        } else {
-            ((mmu.io.lcd.ly as u16).wrapping_add(mmu.io.lcd.scy as u16)) % 8
-        };*/
         let line_index: u16 = if sprite.y_flip {
             (7u16.wrapping_sub(
                 (mmu.io.lcd.get_ly() as u16)
@@ -107,21 +103,9 @@ impl SpriteFetcher {
 
     fn push(&mut self, sprite: &Sprite) {
         //TODO: maybe use standard fifo? refer to GBEDG sprite fetching (pushing)
-        /*if sprite.tile_no == 163 && sprite.x_position == 64 && (sprite.y_position == 64 || sprite.y_position == 56) {
-            println!("======");
-            let pixel1: Option<Pixel> = self.fifo.shift();
-            let pixel2: Option<Pixel> = self.fifo.shift();
-            if let Some(first) = pixel1 {
-                println!("{:?}", first);
-            }
-            if let Some(second) = pixel2 {
-                println!("------");
-                println!("{:?}", second);
-            }
-        }*/
         self.fifo.clear();
         for i in (0..8).rev() {
-            if (sprite.x_position + i) >= 8 {
+            if (sprite.x_position + (7-i)) >= 8 {
                 let exp: u32 = if sprite.x_flip {
                     (7 - i).into()
                 } else {
@@ -152,7 +136,6 @@ impl SpriteFetcher {
     }
 
     pub fn reset(&mut self) {
-        //self.fifo.clear();
         self.fifo.full_clear();
         self.state = FetchState::FetchNo;
         self.tile_no = 0;
