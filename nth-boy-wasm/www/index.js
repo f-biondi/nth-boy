@@ -144,8 +144,6 @@ const renderLoop = () => {
           frames=0;
       }
 
-      let duration = performance.now() - startFrame;
-
       requestAnimationFrame(renderLoop);
   }
 };
