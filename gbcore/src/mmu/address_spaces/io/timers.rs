@@ -10,7 +10,7 @@ pub struct Timers {
 impl Timers {
     pub fn new() -> Self {
         Self {
-            sysclk: 0x00,
+            sysclk: 0x00AB,
             tima: 0,
             tma: 0,
             tac: 0xF8,
